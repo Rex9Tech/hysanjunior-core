@@ -5,18 +5,18 @@ require "erb"
 
 module EmailService
   class TemplateRenderer
-    DEFAULT_DISCLAIMER = "You are receiving this email as a registered user of RexOne."
+    DEFAULT_DISCLAIMER = "You are receiving this email as a registered user of Hysan Junior."
 
     TEMPLATES = {
       "email_confirmation" => {
-        subject: "Confirm your RexOne email",
+        subject: "Confirm your Hysan Junior email",
         headline: "Confirm your email",
         body: "Use this code to confirm {{email}}.",
         highlight_key: :code,
         disclaimer: "If you did not request this, you can safely ignore this email."
       },
       "password_reset" => {
-        subject: "Reset your RexOne passcode",
+        subject: "Reset your Hysan Junior passcode",
         headline: "Reset your passcode",
         body: "We received a passcode reset request for {{email}}.",
         cta_text: "Reset passcode",
@@ -68,10 +68,10 @@ module EmailService
         disclaimer: "You can manage your subscription anytime in your account settings."
       },
       "welcome" => {
-        subject: "Welcome to RexOne",
-        headline: "Welcome to RexOne",
-        body: "Hi {{user_name}}, thanks for joining RexOne. We are excited to have you here.",
-        disclaimer: "You are receiving this email as a registered user of RexOne."
+        subject: "Welcome to Hysan Junior",
+        headline: "Welcome to Hysan Junior",
+        body: "Hi {{user_name}}, thanks for joining Hysan Junior. We are excited to have you here.",
+        disclaimer: "You are receiving this email as a registered user of Hysan Junior."
       },
       "sign_in_alert" => {
         subject: "Security alert: new sign-in",
@@ -116,7 +116,7 @@ module EmailService
         details_html = build_details_html(resolved_details, data) if resolved_details.present?
 
         resolved_cta_url = cta_url.presence || data[:cta_url].presence || data[:reset_url].presence || data[:link].presence
-        resolved_cta_text = cta_text.presence || data[:cta_text].presence || "Open RexOne"
+        resolved_cta_text = cta_text.presence || data[:cta_text].presence || "Open Hysan Junior"
         cta_html = build_cta_html(resolved_cta_url, resolved_cta_text, data) if resolved_cta_url.present?
 
         resolved_disclaimer = disclaimer.presence || data[:disclaimer].presence || DEFAULT_DISCLAIMER
@@ -366,7 +366,7 @@ module EmailService
                             </tr>
                             <tr>
                               <td style="padding-top:12px;font-size:11px;color:#78666f;">
-                                &copy; 2026 RexOne Ecosystem. All rights reserved.
+                                &copy; 2026 Hysan Junior. All rights reserved.
                               </td>
                             </tr>
                           </table>

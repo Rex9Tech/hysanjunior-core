@@ -29,7 +29,7 @@ module AppConfig
   # ----------------------------------------------------------------------------
   SECRET_KEY_BASE              = env_or.call("RAILS_SECRET_KEY_BASE") || env_or.call("SECRET_KEY_BASE") || "secret-key-base"
   MASTER_KEY                  = env_or.call("RAILS_MASTER_KEY") || env_or.call("MASTER_KEY") || "master-key"
-  JWT_SECRET_KEY              = env_or.call("RAILS_JWT_SECRET_KEY", "rexone")
+  JWT_SECRET_KEY              = env_or.call("RAILS_JWT_SECRET_KEY", "hysanjunio")
   JWT_TOKEN                   = ->(user) { Warden::JWTAuth::UserEncoder.new.call(user, :user, nil).first }
 
   # ----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ module AppConfig
   STORAGE_PROVIDER            = env_or.call("STORAGE_PROVIDER", "garage")
 
   # Garage S3 Self-Hosted Storage
-  S3_BUCKET                   = env_or.call("S3_BUCKET", "rexone")
+  S3_BUCKET                   = env_or.call("S3_BUCKET", "hysanjunio")
   S3_ENDPOINT                 = env_or.call("S3_ENDPOINT", "http://garage:3100")
   S3_PUBLIC_ENDPOINT          = env_or.call("S3_PUBLIC_ENDPOINT", "http://localhost:3100")
   S3_REGION                   = env_or.call("S3_REGION", "garage")
@@ -158,7 +158,7 @@ module AppConfig
   BREVO_BASE_URL              = env_or.call("BREVO_BASE_URL", "https://api.brevo.com/v3")
   SMTP_ADDRESS                = env_or.call("SMTP_ADDRESS", "smtp.gmail.com")
   SMTP_PORT                   = env_or.call("SMTP_PORT", "587").to_i
-  SMTP_DOMAIN                 = env_or.call("SMTP_DOMAIN", "rexone.com")
+  SMTP_DOMAIN                 = env_or.call("SMTP_DOMAIN", "hysanjunior.com")
   SMTP_USERNAME               = env_or.call("SMTP_USERNAME", "")
   SMTP_PASSWORD               = env_or.call("SMTP_PASSWORD", "")
 
@@ -217,7 +217,7 @@ module AppConfig
       return base if path.blank?
 
       p = path.to_s.strip
-      return p if p.start_with?("http://", "https://", "mailto:", "tel:", "rexone://")
+      return p if p.start_with?("http://", "https://", "mailto:", "tel:", "hysanjunio://")
 
       p = "/#{p}" unless p.start_with?("/")
       "#{base}#{p}"

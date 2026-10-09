@@ -7,7 +7,7 @@ RETENTION_DAYS="${RETENTION_DAYS:-7}"
 TIMESTAMP="$(date +'%Y%m%d_%H%M%S')"
 BACKUP_FILE="${BACKUP_DIR}/garage_backup_${TIMESTAMP}.tar.gz"
 
-CONTAINER_NAME="${GARAGE_CONTAINER_NAME:-dev-rexone-core-garage}"
+CONTAINER_NAME="${GARAGE_CONTAINER_NAME:-dev-hysanjunio-core-garage}"
 
 mkdir -p "${BACKUP_DIR}"
 

@@ -9,9 +9,9 @@ if [ -f .env ]; then
   set +a
 fi
 
-CONTAINER_NAME="${GARAGE_CONTAINER_NAME:-dev-rexone-core-garage}"
-BUCKET_NAME="${S3_BUCKET:-rexone}"
-KEY_NAME="rexone-key"
+CONTAINER_NAME="${GARAGE_CONTAINER_NAME:-dev-hysanjunio-core-garage}"
+BUCKET_NAME="${S3_BUCKET:-hysanjunio}"
+KEY_NAME="hysanjunio-key"
 
 S3_ACCESS_KEY="${S3_ACCESS_KEY:-}"
 S3_SECRET_KEY="${S3_SECRET_KEY:-}"

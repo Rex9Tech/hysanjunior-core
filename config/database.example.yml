@@ -25,7 +25,7 @@ default: &default
 
   # Database connection is provided through RAILS_DATABASE_URL or DATABASE_URL.
   # Example:
-  # postgresql://username:password@localhost/rexone_core_development
+  # postgresql://username:password@localhost/hysanjunio_core_development
   url: <%= AppConfig::DATABASE_URL %>
 
 # ============================================================
@@ -37,7 +37,7 @@ development:
     <<: *default
 
     # Database name is normally provided through RAILS_DATABASE_URL.
-    # database: rexone_core_development
+    # database: hysanjunio_core_development
 
     # The specified database role being used to connect to PostgreSQL.
     #
@@ -47,7 +47,7 @@ development:
     # When left blank, PostgreSQL will use the default role. This is
     # the same name as the operating system user running Rails.
     #
-    # username: rexone_core
+    # username: hysanjunio_core
 
     # The password associated with the PostgreSQL role (username).
     # password:
@@ -88,7 +88,7 @@ test:
     <<: *default
 
     # Test uses a dedicated database instead of RAILS_DATABASE_URL.
-    database: rexone_core_test
+    database: hysanjunio_core_test
 
 # ============================================================
 # PRODUCTION
@@ -122,10 +122,10 @@ production:
     # Production database connection is provided through
     # RAILS_DATABASE_URL.
     #
-    # database: rexone_core_production
+    # database: hysanjunio_core_production
     #
     # Example:
-    # RAILS_DATABASE_URL=postgresql://psql:password@db:5432/rexone_core_production
+    # RAILS_DATABASE_URL=postgresql://psql:password@db:5432/hysanjunio_core_production
 
     # Solid Queue runs in the same application environment.
     # Database pool is configured via AppConfig::DB_POOL (defaulting to RAILS_MAX_THREADS).

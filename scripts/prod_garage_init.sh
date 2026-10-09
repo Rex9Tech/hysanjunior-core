@@ -7,7 +7,7 @@ set -euo pipefail
 
 CONTAINER_NAME="${1:-${GARAGE_CONTAINER_NAME:-rexone-garage}}"
 BUCKET_NAME="${2:-${S3_BUCKET:-rexone}}"
-KEY_NAME="${3:-${GARAGE_KEY_NAME:-rexone-key}}"
+KEY_NAME="${3:-${GARAGE_KEY_NAME:-hysanjunio-key}}"
 
 echo "=================================================================="
 echo "🚀 Initializing Garage S3 Cluster on: $CONTAINER_NAME"

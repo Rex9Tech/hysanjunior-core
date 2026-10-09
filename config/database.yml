@@ -24,13 +24,13 @@ default: &default
 development:
   primary:
     <<: *default
-    # database: rexone_core_development
+    # database: hysanjunio_core_development
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
   # When left blank, PostgreSQL will use the default role. This is
   # the same name as the operating system user running Rails.
-  #username: rexone_core
+  #username: hysanjunio_core
 
   # The password associated with the PostgreSQL role (username).
   #password:
@@ -60,7 +60,7 @@ test:
   primary:
     <<: *default
     url: <%= AppConfig::TEST_DATABASE_URL %>
-    database: rexone_core_test
+    database: hysanjunio_core_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -86,4 +86,4 @@ test:
 production:
   primary:
     <<: *default
-    # database: rexone_core_production
+    # database: hysanjunio_core_production

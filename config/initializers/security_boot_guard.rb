@@ -23,7 +23,7 @@ module SecurityBootGuard
       description: "PostgreSQL database password"
     },
     "S3_ADMIN_TOKEN" => {
-      placeholders: [ "rexone_garage_admin_token_secret_key_12345", "changeme_garage_admin_token" ],
+      placeholders: [ "hysanjunio_garage_admin_token_secret_key_12345", "changeme_garage_admin_token" ],
       min_length: 16,
       description: "Garage S3 storage administration token"
     }

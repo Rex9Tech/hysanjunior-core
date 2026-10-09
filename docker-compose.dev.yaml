@@ -73,7 +73,7 @@ services:
   # Garage S3 Storage [OPTIONAL] - self-hosted S3-compatible object storage
   garage:
     image: dxflrs/garage:v1.0.1
-    container_name: ${GARAGE_CONTAINER_NAME:-dev-rexone-core-garage}
+    container_name: ${GARAGE_CONTAINER_NAME:-dev-hysanjunio-core-garage}
     volumes:
       - ./config/garage.toml:/etc/garage.toml:ro
       - garage-meta:/var/lib/garage/meta

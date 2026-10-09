@@ -1,28 +1,28 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "brand": {
-    "name": "Nova",
-    "slug": "nova",
-    "shortName": "Nova",
-    "description": "Intelligent Cloud Platform",
-    "company": "Rex9",
-    "author": "Rex (Htet Naing)",
-    "supportEmail": "support@nova.com",
-    "website": "https://rex9.me",
+    "name": "Hysan Junior",
+    "slug": "hysanjunior",
+    "shortName": "Hysan Junior",
+    "description": "Hysan Junior",
+    "company": "Hysan",
+    "author": "Hysan ",
+    "supportEmail": "support@hysanjunior.com",
+    "website": "https://hysanjunior.com",
     "logoPath": "brand/logo.png"
   },
   "mobile": {
-    "appName": "Nova Mobile",
-    "packageName": "com.rex9.nova",
-    "bundleId": "com.rex9.nova"
+    "appName": "Hysan Junior Mobile",
+    "packageName": "com.hysan.hysanjunior",
+    "bundleId": "com.hysan.hysanjunior"
   },
   "web": {
-    "appName": "Nova Web",
-    "title": "Nova — Product Foundation",
+    "appName": "Hysan Junior Web",
+    "title": "Hysan Junior",
     "shortName": "Nova"
   },
   "core": {
-    "appName": "Nova Core",
-    "mailerSender": "support@nova.com"
+    "appName": "Hysan Junior Core",
+    "mailerSender": "support@hysanjunior.com"
   }
 }

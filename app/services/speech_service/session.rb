@@ -138,8 +138,8 @@ module SpeechService
       def send_speech_config
         payload = {
           context: {
-            system: { name: "rexone-core", version: "1.0.0"  },
-            os: { platform: "Mac", name: "rexone-core", version: "" }
+            system: { name: "hysanjunio-core", version: "1.0.0"  },
+            os: { platform: "Mac", name: "hysanjunio-core", version: "" }
           }
         }.to_json
 

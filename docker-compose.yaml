@@ -9,7 +9,7 @@ x-logging: &default-logging
 
 services:
   api:
-    container_name: ${RAILS_CONTAINER_NAME:-prod-rexone-api}
+    container_name: ${RAILS_CONTAINER_NAME:-prod-hysanjunio-api}
     build:
       context: .
       dockerfile: ${RAILS_DOCKERFILE:-Dockerfile}
@@ -29,7 +29,7 @@ services:
       STORAGE_PROVIDER: ${STORAGE_PROVIDER:-garage}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT}
-      S3_BUCKET: ${S3_BUCKET:-rexone}
+      S3_BUCKET: ${S3_BUCKET:-hysanjunio}
       S3_REGION: ${S3_REGION:-garage}
       S3_FOLDER_PREFIX: ${S3_FOLDER_PREFIX:-prod}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
@@ -49,7 +49,7 @@ services:
 
   # Solid Queue Default Worker
   waka:
-    container_name: ${WAKA_CONTAINER_NAME:-prod-rexone-waka}
+    container_name: ${WAKA_CONTAINER_NAME:-prod-hysanjunio-waka}
     build:
       context: .
       dockerfile: ${RAILS_DOCKERFILE:-Dockerfile}
@@ -72,7 +72,7 @@ services:
       STORAGE_PROVIDER: ${STORAGE_PROVIDER:-garage}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT}
-      S3_BUCKET: ${S3_BUCKET:-rexone}
+      S3_BUCKET: ${S3_BUCKET:-hysanjunio}
       S3_REGION: ${S3_REGION:-garage}
       S3_FOLDER_PREFIX: ${S3_FOLDER_PREFIX:-prod}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
@@ -87,7 +87,7 @@ services:
 
   # Media Worker (FFmpeg video/image transcoding queue)
   media:
-    container_name: ${MEDIA_CONTAINER_NAME:-prod-rexone-media}
+    container_name: ${MEDIA_CONTAINER_NAME:-prod-hysanjunio-media}
     build:
       context: .
       dockerfile: ${RAILS_DOCKERFILE:-Dockerfile}
@@ -106,7 +106,7 @@ services:
       STORAGE_PROVIDER: ${STORAGE_PROVIDER:-garage}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT}
-      S3_BUCKET: ${S3_BUCKET:-rexone}
+      S3_BUCKET: ${S3_BUCKET:-hysanjunio}
       S3_REGION: ${S3_REGION:-garage}
       S3_FOLDER_PREFIX: ${S3_FOLDER_PREFIX:-prod}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
@@ -127,7 +127,7 @@ services:
   # ── OPTIONAL / STANDALONE DB (Profile: with-db) ───────────────────────
   # Can be deployed independently or as part of compose with COMPOSE_PROFILES=with-db
   db:
-    container_name: ${DB_CONTAINER_NAME:-prod-rexone-db}
+    container_name: ${DB_CONTAINER_NAME:-prod-hysanjunio-db}
     image: postgres:18-alpine
     profiles: ["with-db", "full"]
     restart: unless-stopped
@@ -139,7 +139,7 @@ services:
       timeout: 5s
       retries: 10
     environment:
-      POSTGRES_DB: ${PG_DATABASE:-rexone_production}
+      POSTGRES_DB: ${PG_DATABASE:-hysanjunio_production}
       POSTGRES_USER: ${PG_USER:-postgres}
       POSTGRES_PASSWORD: ${PG_PASSWORD}
     logging: *default-logging
@@ -151,7 +151,7 @@ services:
   # Exactly one Garage container per project, partitioned by folders (e.g. prod/, uat/)
   garage:
     image: dxflrs/garage:v1.0.1
-    container_name: ${GARAGE_CONTAINER_NAME:-rexone-garage}
+    container_name: ${GARAGE_CONTAINER_NAME:-hysanjunio-garage}
     profiles: ["with-garage", "full"]
     restart: unless-stopped
     volumes:
@@ -170,13 +170,13 @@ services:
 
 networks:
   rexone-network:
-    name: ${DOCKER_NETWORK:-prod-rexone-net}
+    name: ${DOCKER_NETWORK:-prod-hysanjunio-net}
     external: ${EXTERNAL_NETWORK:-false}
 
 volumes:
   rexone-postgres-data:
-    name: ${POSTGRES_VOLUME:-prod-rexone-postgres-data}
+    name: ${POSTGRES_VOLUME:-prod-hysanjunio-postgres-data}
   rexone-garage-meta:
-    name: ${GARAGE_META_VOLUME:-rexone-garage-meta}
+    name: ${GARAGE_META_VOLUME:-hysanjunio-garage-meta}
   rexone-garage-data:
-    name: ${GARAGE_DATA_VOLUME:-rexone-garage-data}
+    name: ${GARAGE_DATA_VOLUME:-hysanjunio-garage-data}
