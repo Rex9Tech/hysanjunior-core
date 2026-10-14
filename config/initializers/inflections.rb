@@ -14,3 +14,8 @@
 # ActiveSupport::Inflector.inflections(:en) do |inflect|
 #   inflect.acronym "RESTful"
 # end
+
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  # Default Rails singularizes "campuses" → "campuse", which breaks FKs as campuse_id.
+  inflect.irregular "campus", "campuses"
+end

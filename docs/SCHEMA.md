@@ -104,6 +104,16 @@ erDiagram
   questions ||--o{ question_options : "options"
   question_options ||--o| assets : "image assetable"
 
+  campuses ||--o{ school_classes : "contains"
+  campuses ||--o{ campus_memberships : "teachers"
+  users ||--o{ campus_memberships : "teacher_admin"
+  school_classes ||--o{ class_assignments : "teachers"
+  users ||--o{ class_assignments : "teacher"
+  school_classes ||--o{ class_enrollments : "enrolls"
+  users ||--o{ class_enrollments : "student"
+  users ||--o{ parent_students : "parent"
+  users ||--o{ parent_students : "student"
+
   users ||--o{ user_notifications : "receives"
   notifications ||--o{ user_notifications : "templated_by"
 
@@ -188,12 +198,12 @@ erDiagram
 ### 3.2. `iam_roles`
 
 - **Model**: [`Iam::Role`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/iam/role.rb)
-- **Description**: RBAC roles (e.g. `super_admin`, `admin`, `user`).
+- **Description**: RBAC roles (e.g. `super_admin`, `admin`, `user`, `student`, `parent`, `teacher_admin`).
 
 | Column              | Type       | Nullable | Default             | Description / Notes                             |
 | :------------------ | :--------- | :------: | :------------------ | :---------------------------------------------- |
 | `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                     |
-| `name`              | `string`   |    ❌    | —                   | Role name (e.g. `super_admin`, `admin`, `user`) |
+| `name`              | `string`   |    ❌    | —                   | Role name (e.g. `super_admin`, `admin`, `user`, `student`, `parent`, `teacher_admin`) |
 | `description`       | `text`     |    ✔️    | `NULL`              | Human-readable role description                 |
 | `system`            | `boolean`  |    ✔️    | `false`             | Protected system role flag                      |
 | `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                               |
@@ -223,7 +233,7 @@ erDiagram
 | `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `name`              | `string`   |    ❌    | —                   | Unique identifier (e.g. `read_users`, `create_payments`)                                                                                                                                                                                                                                                                                                                                                                  |
 | `action`            | `string`   |    ❌    | —                   | Enum: `read`, `create`, `update`, `delete`                                                                                                                                                                                                                                                                                                                                                                                |
-| `resource`          | `string`   |    ❌    | —                   | Enum of 25 canonical resources (`users`, `accesses`, `assets`, `notifications`, `user_notifications`, `feedbacks`, `lessons`, `analytics`, `speech`, `ai_profiles`, `ai_runs`, `chat_rooms`, `chat_messages`, `client_logs`, `client_versions`, `client_user_versions`, `iam_roles`, `iam_permissions`, `iam_user_roles`, `payment_products`, `payment_payments`, `payment_subscriptions`, `payment_purchases`, `payment_coupons`, `payment_user_coupons`) |
+| `resource`          | `string`   |    ❌    | —                   | Enum of canonical resources including `users`, `accesses`, `assets`, `notifications`, `user_notifications`, `feedbacks`, `lessons`, `campuses`, `school_classes`, `campus_memberships`, `class_assignments`, `class_enrollments`, `parent_students`, `analytics`, `speech`, `ai_profiles`, `ai_runs`, `chat_rooms`, `chat_messages`, `client_logs`, `client_versions`, `client_user_versions`, `iam_roles`, `iam_permissions`, `iam_user_roles`, `payment_products`, `payment_payments`, `payment_subscriptions`, `payment_purchases`, `payment_coupons`, `payment_user_coupons` |
 | `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -1091,6 +1101,92 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 - `index_sort_health_choices_on_position` / `discarded_at`
 - FKs: `lesson_id` → `lessons(id)`; audit columns → `users(id)`.
 
+### 9.7. `campuses`
+
+- **Model**: [`Campus`](app/models/campus.rb)
+- **Description**: Admin CMS campus (school site). Has many `school_classes` and `campus_memberships` (teachers only). Student roster is derived via class enrollments. Soft-deleted with Discard.
+
+| Column              | Type       | Nullable | Default             | Description / Notes                         |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------------ |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                 |
+| `name`              | `string`   |    ❌    | —                   | Campus name (searchable)                    |
+| `code`              | `string`   |    ✔️    | `NULL`              | Optional unique code (kept rows)            |
+| `status`            | `string`   |    ❌    | `"active"`          | Enum: `active`, `inactive`                  |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                           |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                          |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                         |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                          |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                       |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp           |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+
+**Indexes & Foreign Keys**: unique partial `code` where kept; indexes on `name`, `status`, `discarded_at`; audit FKs → `users(id)`.
+
+### 9.8. `school_classes`
+
+- **Model**: [`SchoolClass`](app/models/school_class.rb)
+- **Description**: Class/section under a campus, keyed by `level` (aligned with `Lesson.level`) and `name` (e.g. `A`). Unique `(campus_id, level, name)` among kept rows.
+
+| Column              | Type       | Nullable | Default             | Description / Notes              |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------- |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                      |
+| `campus_id`         | `uuid`     |    ❌    | —                   | FK → `campuses`                  |
+| `name`              | `string`   |    ❌    | —                   | Class/section label              |
+| `level`             | `integer`  |    ❌    | —                   | Level (`>= 1`)                   |
+| `status`            | `string`   |    ❌    | `"active"`          | Enum: `active`, `inactive`       |
+| audit + discard cols | —         |    —     | —                   | Same pattern as campuses         |
+
+### 9.9. `campus_memberships`
+
+- **Model**: [`CampusMembership`](app/models/campus_membership.rb)
+- **Description**: Attaches a `teacher_admin` user to a campus. Parents are **not** campus members; they link via `parent_students` only.
+
+| Column       | Type     | Nullable | Default            | Description / Notes                          |
+| :----------- | :------- | :------: | :----------------- | :------------------------------------------- |
+| `id`         | `uuid`   |    ❌    | `gen_random_uuid()` | Primary Key                                 |
+| `campus_id`  | `uuid`   |    ❌    | —                  | FK → `campuses`                              |
+| `user_id`    | `uuid`   |    ❌    | —                  | FK → `users` (must have `teacher_admin` role)|
+| `kind`       | `string` |    ❌    | `"teacher_admin"`  | Enum: `teacher_admin`                        |
+| audit + discard cols | — | — | — | Same pattern as campuses |
+
+### 9.10. `class_assignments`
+
+- **Model**: [`ClassAssignment`](app/models/class_assignment.rb)
+- **Description**: Assigns a `teacher_admin` user to a `school_class`. Teacher must already hold a kept `campus_membership` on that class’s campus. A class may have multiple teachers; a teacher may be assigned to multiple classes.
+
+| Column            | Type   | Nullable | Default             | Description / Notes                                      |
+| :---------------- | :----- | :------: | :------------------ | :------------------------------------------------------- |
+| `id`              | `uuid` |    ❌    | `gen_random_uuid()` | Primary Key                                              |
+| `school_class_id` | `uuid` |    ❌    | —                   | FK → `school_classes`                                    |
+| `user_id`         | `uuid` |    ❌    | —                   | FK → `users` (`teacher_admin` + campus member)           |
+| audit + discard cols | —   | —        | —                   | Same pattern as campuses                                 |
+
+### 9.11. `class_enrollments`
+
+- **Model**: [`ClassEnrollment`](app/models/class_enrollment.rb)
+- **Description**: Places a `student` user into a `school_class`. One active enrollment per student (partial unique index). Campus student lists join `campus → school_classes → class_enrollments`.
+
+| Column            | Type     | Nullable | Default        | Description / Notes                         |
+| :---------------- | :------- | :------: | :------------- | :------------------------------------------ |
+| `id`              | `uuid`   |    ❌    | `gen_random_uuid()` | Primary Key                            |
+| `school_class_id` | `uuid`   |    ❌    | —              | FK → `school_classes`                       |
+| `user_id`         | `uuid`   |    ❌    | —              | FK → `users` (must have `student` role)     |
+| `status`          | `string` |    ❌    | `"active"`     | Enum: `active`, `left`                      |
+| audit + discard cols | —     | —        | —              | Same pattern as campuses                    |
+
+### 9.12. `parent_students`
+
+- **Model**: [`ParentStudent`](app/models/parent_student.rb)
+- **Description**: Links a `parent` user to a `student` user. No campus membership. Parent’s campuses are derived through the student’s active class enrollment.
+
+| Column       | Type   | Nullable | Default             | Description / Notes                      |
+| :----------- | :----- | :------: | :------------------ | :--------------------------------------- |
+| `id`         | `uuid` |    ❌    | `gen_random_uuid()` | Primary Key                              |
+| `parent_id`  | `uuid` |    ❌    | —                   | FK → `users` (must have `parent` role)   |
+| `student_id` | `uuid` |    ❌    | —                   | FK → `users` (must have `student` role)  |
+| audit + discard cols | — | — | — | Same pattern as campuses |
+
 ---
 
 ## 10. Diagnostics & Logging
@@ -1332,6 +1428,12 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 | `questions`              | [`Question`](app/models/question.rb)                                                                            | CMS            |      ✔️       |   ✔️    | `question_options` (polymorphic host) |
 | `question_options`       | [`QuestionOption`](app/models/question_option.rb)                                                               | CMS            |      ✔️       |   ✔️    | `assets` (image)                     |
 | `sort_health_choices`    | [`SortHealthChoice`](app/models/sort_health_choice.rb)                                                          | CMS            |      ✔️       |   ✔️    | `vocabularies` (group items)         |
+| `campuses`               | [`Campus`](app/models/campus.rb)                                                                                | CMS            |      ✔️       |   ✔️    | `school_classes`, `campus_memberships` |
+| `school_classes`         | [`SchoolClass`](app/models/school_class.rb)                                                                     | CMS            |      ✔️       |   ✔️    | `class_enrollments`                  |
+| `campus_memberships`     | [`CampusMembership`](app/models/campus_membership.rb)                                                           | CMS            |      ✔️       |   ✔️    | —                                    |
+| `class_assignments`      | [`ClassAssignment`](app/models/class_assignment.rb)                                                             | CMS            |      ✔️       |   ✔️    | —                                    |
+| `class_enrollments`      | [`ClassEnrollment`](app/models/class_enrollment.rb)                                                             | CMS            |      ✔️       |   ✔️    | —                                    |
+| `parent_students`        | [`ParentStudent`](app/models/parent_student.rb)                                                                 | CMS            |      ✔️       |   ✔️    | —                                    |
 | `client_logs`            | [`Client::Log`](app/models/client/log.rb)                                                                       | Diagnostics    |      ✔️       |   ✔️    | —                                    |
 | `notifications`          | [`Notification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/notification.rb)                   | Notifications  |      ✔️       |   ✔️    | —                                    |
 | `user_notifications`     | [`UserNotification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/user_notification.rb)          | Notifications  |      ✔️       |   ✔️    | —                                    |

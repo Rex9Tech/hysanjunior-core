@@ -1,0 +1,63 @@
+en:
+  campus:
+    fetched: "Campuses fetched successfully."
+    created: "Campus created successfully."
+    updated: "Campus updated successfully."
+    discarded: "Campus discarded successfully."
+    undiscarded: "Campus restored successfully."
+    not_found: "Campus not found."
+    invalid_request: "Invalid campus request."
+    class_fetched: "School classes fetched successfully."
+    class_created: "School class created successfully."
+    class_updated: "School class updated successfully."
+    class_discarded: "School class discarded successfully."
+    class_undiscarded: "School class restored successfully."
+    class_not_found: "School class not found."
+    membership_fetched: "Campus memberships fetched successfully."
+    membership_created: "Campus membership created successfully."
+    membership_discarded: "Campus membership removed successfully."
+    membership_not_found: "Campus membership not found."
+    teacher_required: "User must have the teacher_admin role."
+    assignment_fetched: "Class assignments fetched successfully."
+    assignment_created: "Teacher assigned to class successfully."
+    assignment_discarded: "Class assignment removed successfully."
+    assignment_not_found: "Class assignment not found."
+    teacher_campus_required: "Teacher must belong to the class campus first."
+    enrollment_fetched: "Class enrollments fetched successfully."
+    enrollment_created: "Student enrolled successfully."
+    enrollment_updated: "Class enrollment updated successfully."
+    enrollment_discarded: "Class enrollment removed successfully."
+    enrollment_not_found: "Class enrollment not found."
+    student_required: "User must have the student role."
+    student_already_enrolled: "Student already has an active class enrollment."
+    parent_link_fetched: "Parent-student links fetched successfully."
+    parent_link_created: "Parent linked to student successfully."
+    parent_link_discarded: "Parent-student link removed successfully."
+    parent_link_not_found: "Parent-student link not found."
+    parent_required: "User must have the parent role."
+    parent_student_same: "Parent and student must be different users."
+    students_fetched: "Campus students fetched successfully."
+  activerecord:
+    errors:
+      models:
+        campus_membership:
+          attributes:
+            user_id:
+              must_be_teacher_admin: "must have the teacher_admin role"
+        class_assignment:
+          attributes:
+            user_id:
+              must_be_teacher_admin: "must have the teacher_admin role"
+              must_belong_to_campus: "must belong to the class campus first"
+        class_enrollment:
+          attributes:
+            user_id:
+              must_be_student: "must have the student role"
+              already_enrolled: "already has an active class enrollment"
+        parent_student:
+          attributes:
+            parent_id:
+              must_be_parent: "must have the parent role"
+            student_id:
+              must_be_student: "must have the student role"
+              must_differ_from_parent: "must be different from the parent"

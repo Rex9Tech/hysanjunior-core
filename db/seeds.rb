@@ -43,6 +43,24 @@ default_user = Iam::Role.create!(
   system: true
 )
 
+Iam::Role.create!(
+  name: IamConstants::Role::STUDENT,
+  description: SeedConstants::RoleDescriptions::STUDENT,
+  system: true
+)
+
+Iam::Role.create!(
+  name: IamConstants::Role::PARENT,
+  description: SeedConstants::RoleDescriptions::PARENT,
+  system: true
+)
+
+Iam::Role.create!(
+  name: IamConstants::Role::TEACHER_ADMIN,
+  description: SeedConstants::RoleDescriptions::TEACHER_ADMIN,
+  system: true
+)
+
 puts "✅ #{Iam::Role.count} roles created"
 
 # ===== ASSIGN PERMISSIONS TO ROLES =====

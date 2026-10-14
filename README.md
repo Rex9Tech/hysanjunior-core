@@ -324,6 +324,9 @@ Just deliberate engineering, tested boundaries, and a foundation built to remain
 | | Client Error Telemetry Logging (`/v1/client/logs`) | ✅ | ✅ | ✅ | [Observability](docs/FOUNDATION.md#observability-and-administration) |
 | | User Feedback Engine (1–10 Rating & Auto-Triage) | ✅ | ✅ | ✅ | [Observability](docs/FOUNDATION.md#observability-and-administration) |
 | | Admin CMS Lessons + song/story/vocab/word families/story order/build sentences/MCQ/sort health choices (`/v1/admin/lessons`) | ✅ | Planned | N/A | [Ecosystem](ECOSYSTEM.md) |
+| | Admin CMS Campus + classes-by-level + teacher campus/class assignment + student enrollment + parent-student links | ✅ | ✅ | N/A | [Ecosystem](ECOSYSTEM.md) |
+| | Admin CMS Student Management (create student + class placement + parent create/link) | ✅ | ✅ | N/A | [Ecosystem](ECOSYSTEM.md) |
+| | Admin CMS Teacher Management (create teacher + campus attach + optional class assign) | ✅ | ✅ | N/A | [Ecosystem](ECOSYSTEM.md) |
 | | In-App Semantic Version Upgrader & Splash Check | ✅ | ✅ | ✅ | [Ecosystem](ECOSYSTEM.md) |
 | | Universal Deep Linking (`rexone://`) & Continue URLs | N/A | ✅ | ✅ | [Ecosystem](ECOSYSTEM.md#9-return-after-auth-protocol--universal-deep-linking-rexone) |
 | | Generative Engine Optimization (GEO & `/llms.txt`) | N/A | ✅ | N/A | [AI Discovery Guide](https://github.com/rex-9/rexone-web/blob/dev/docs/SEO_GEO.md) |

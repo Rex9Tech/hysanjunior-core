@@ -17,6 +17,13 @@ class User < ApplicationRecord
   has_many :client_user_versions, class_name: "Client::UserVersion", dependent: :destroy
   has_one :latest_user_version, -> { order(last_seen_at: :desc, updated_at: :desc) },
           class_name: "Client::UserVersion"
+  has_many :campus_memberships, dependent: :destroy
+  has_many :class_assignments, dependent: :destroy
+  has_many :class_enrollments, dependent: :destroy
+  has_many :parent_links, class_name: "ParentStudent", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent
+  has_many :student_links, class_name: "ParentStudent", foreign_key: :student_id, dependent: :destroy, inverse_of: :student
+  has_many :children_students, through: :parent_links, source: :student
+  has_many :parents, through: :student_links, source: :parent
 
   devise :database_authenticatable, :registerable, :validatable, :confirmable,
   :recoverable, :rememberable, :lockable, :trackable, :timeoutable,

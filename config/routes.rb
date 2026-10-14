@@ -281,6 +281,24 @@ Rails.application.routes.draw do
         end
       end
 
+      resources :campuses do
+        member do
+          post :undiscard
+          get :students
+        end
+      end
+
+      resources :school_classes do
+        member do
+          post :undiscard
+        end
+      end
+
+      resources :campus_memberships, only: %i[index show create destroy]
+      resources :class_assignments, only: %i[index create destroy]
+      resources :class_enrollments, only: %i[index show create update destroy]
+      resources :parent_students, only: %i[index create destroy]
+
       namespace :client do
         resources :versions, only: %i[index show create update] do
           collection do

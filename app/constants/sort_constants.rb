@@ -19,6 +19,12 @@ module SortConstants
     CHAT_MSG    = %w[created_at role discarded_at].freeze
     FEEDBACK    = %w[created_at user_name rating].freeze
     LESSON      = %w[created_at title level unit status discarded_at].freeze
+    CAMPUS      = %w[created_at name code status discarded_at].freeze
+    SCHOOL_CLASS = %w[created_at name level status discarded_at].freeze
+    CAMPUS_MEMBERSHIP = %w[created_at kind].freeze
+    CLASS_ASSIGNMENT = %w[created_at].freeze
+    CLASS_ENROLLMENT = %w[created_at status].freeze
+    PARENT_STUDENT = %w[created_at].freeze
     VERSION     = %w[created_at number title status released_at discarded_at install_count].freeze
     USER_VERSION = %w[last_seen_at number platform created_at].freeze
     CLIENT_LOG  = %w[created_at occurrence_count resolved_at].freeze

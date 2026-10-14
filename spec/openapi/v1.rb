@@ -433,6 +433,83 @@ module Openapi
           admin_notes: { type: :string, nullable: true }
         )
       ),
+      campus_request: object(
+        required: [ :campus ],
+        campus: object(
+          required: [ :name ],
+          name: { type: :string, example: "Downtown Campus" },
+          code: { type: :string, nullable: true, example: "DT1" },
+          status: {
+            type: :string,
+            nullable: true,
+            enum: CampusConstants::Status::ALL,
+            example: CampusConstants::Status::ACTIVE
+          }
+        )
+      ),
+      school_class_request: object(
+        required: [ :school_class ],
+        school_class: object(
+          required: [ :campus_id, :name, :level ],
+          campus_id: { type: :string, format: :uuid },
+          name: { type: :string, example: "A" },
+          level: { type: :integer, minimum: 1, example: 1 },
+          status: {
+            type: :string,
+            nullable: true,
+            enum: CampusConstants::Status::ALL,
+            example: CampusConstants::Status::ACTIVE
+          }
+        )
+      ),
+      campus_membership_request: object(
+        required: [ :campus_membership ],
+        campus_membership: object(
+          required: [ :campus_id, :user_id ],
+          campus_id: { type: :string, format: :uuid },
+          user_id: { type: :string, format: :uuid, description: "User must have teacher_admin role." },
+          kind: {
+            type: :string,
+            nullable: true,
+            enum: CampusConstants::MembershipKind::ALL,
+            example: CampusConstants::MembershipKind::TEACHER_ADMIN
+          }
+        )
+      ),
+      class_assignment_request: object(
+        required: [ :class_assignment ],
+        class_assignment: object(
+          required: [ :school_class_id, :user_id ],
+          school_class_id: { type: :string, format: :uuid },
+          user_id: {
+            type: :string,
+            format: :uuid,
+            description: "User must have teacher_admin role and a campus membership on the class campus."
+          }
+        )
+      ),
+      class_enrollment_request: object(
+        required: [ :class_enrollment ],
+        class_enrollment: object(
+          required: [ :school_class_id, :user_id ],
+          school_class_id: { type: :string, format: :uuid },
+          user_id: { type: :string, format: :uuid, description: "User must have student role." },
+          status: {
+            type: :string,
+            nullable: true,
+            enum: CampusConstants::EnrollmentStatus::ALL,
+            example: CampusConstants::EnrollmentStatus::ACTIVE
+          }
+        )
+      ),
+      parent_student_request: object(
+        required: [ :parent_student ],
+        parent_student: object(
+          required: [ :parent_id, :student_id ],
+          parent_id: { type: :string, format: :uuid, description: "User must have parent role." },
+          student_id: { type: :string, format: :uuid, description: "User must have student role." }
+        )
+      ),
       lesson_request: object(
         required: [ :lesson ],
         lesson: object(
@@ -2326,6 +2403,136 @@ module Openapi
           parameters: [ path_parameter(:id) ],
           errors: [ 401, 403, 404, 422 ]
         )
+      }
+
+      paths["/v1/admin/campuses"] = {
+        get: operation(tags: "Admin / Campuses", summary: "List and filter campuses",
+                       errors: [ 401, 403 ]),
+        post: operation(tags: "Admin / Campuses", summary: "Create a campus", success: 201,
+                        body: ref(:campus_request), errors: [ 401, 403, 422 ])
+      }
+      paths["/v1/admin/campuses/{id}"] = {
+        get: operation(tags: "Admin / Campuses", summary: "Get campus details",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        put: operation(tags: "Admin / Campuses", summary: "Update a campus",
+                       parameters: [ path_parameter(:id) ], body: ref(:campus_request),
+                       errors: [ 401, 403, 404, 422 ]),
+        patch: operation(tags: "Admin / Campuses", summary: "Update a campus",
+                         parameters: [ path_parameter(:id) ], body: ref(:campus_request),
+                         errors: [ 401, 403, 404, 422 ]),
+        delete: operation(tags: "Admin / Campuses", summary: "Discard a campus",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/campuses/{id}/undiscard"] = {
+        post: operation(tags: "Admin / Campuses", summary: "Restore a discarded campus",
+                        parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/campuses/{id}/students"] = {
+        get: operation(
+          tags: "Admin / Campuses",
+          summary: "List students enrolled under a campus",
+          description: "Derived via school_classes → active class_enrollments. Filter by level and school_class_id.",
+          parameters: [ path_parameter(:id) ],
+          errors: [ 401, 403, 404 ]
+        )
+      }
+      paths["/v1/admin/school_classes"] = {
+        get: operation(tags: "Admin / School Classes", summary: "List school classes (filter campus_id, level)",
+                       errors: [ 401, 403 ]),
+        post: operation(tags: "Admin / School Classes", summary: "Create a school class", success: 201,
+                        body: ref(:school_class_request), errors: [ 401, 403, 422 ])
+      }
+      paths["/v1/admin/school_classes/{id}"] = {
+        get: operation(tags: "Admin / School Classes", summary: "Get school class details",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        put: operation(tags: "Admin / School Classes", summary: "Update a school class",
+                       parameters: [ path_parameter(:id) ], body: ref(:school_class_request),
+                       errors: [ 401, 403, 404, 422 ]),
+        patch: operation(tags: "Admin / School Classes", summary: "Update a school class",
+                         parameters: [ path_parameter(:id) ], body: ref(:school_class_request),
+                         errors: [ 401, 403, 404, 422 ]),
+        delete: operation(tags: "Admin / School Classes", summary: "Discard a school class",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/school_classes/{id}/undiscard"] = {
+        post: operation(tags: "Admin / School Classes", summary: "Restore a discarded school class",
+                        parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/campus_memberships"] = {
+        get: operation(tags: "Admin / Campus Memberships", summary: "List campus teacher memberships",
+                       errors: [ 401, 403 ]),
+        post: operation(
+          tags: "Admin / Campus Memberships",
+          summary: "Attach a teacher_admin user to a campus",
+          success: 201,
+          body: ref(:campus_membership_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/campus_memberships/{id}"] = {
+        get: operation(tags: "Admin / Campus Memberships", summary: "Get a campus membership",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        delete: operation(tags: "Admin / Campus Memberships", summary: "Remove a campus membership",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/class_assignments"] = {
+        get: operation(
+          tags: "Admin / Class Assignments",
+          summary: "List teacher-to-class assignments",
+          description: "Filter by school_class_id, campus_id, or user_id.",
+          errors: [ 401, 403 ]
+        ),
+        post: operation(
+          tags: "Admin / Class Assignments",
+          summary: "Assign a campus teacher to a school class",
+          description: "Teacher must already be a campus_membership on the class campus.",
+          success: 201,
+          body: ref(:class_assignment_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/class_assignments/{id}"] = {
+        delete: operation(tags: "Admin / Class Assignments", summary: "Remove a class assignment",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/class_enrollments"] = {
+        get: operation(tags: "Admin / Class Enrollments", summary: "List class enrollments",
+                       errors: [ 401, 403 ]),
+        post: operation(
+          tags: "Admin / Class Enrollments",
+          summary: "Enroll a student in a school class",
+          success: 201,
+          body: ref(:class_enrollment_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/class_enrollments/{id}"] = {
+        get: operation(tags: "Admin / Class Enrollments", summary: "Get enrollment details",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        put: operation(tags: "Admin / Class Enrollments", summary: "Update enrollment",
+                       parameters: [ path_parameter(:id) ], body: ref(:class_enrollment_request),
+                       errors: [ 401, 403, 404, 422 ]),
+        patch: operation(tags: "Admin / Class Enrollments", summary: "Update enrollment",
+                         parameters: [ path_parameter(:id) ], body: ref(:class_enrollment_request),
+                         errors: [ 401, 403, 404, 422 ]),
+        delete: operation(tags: "Admin / Class Enrollments", summary: "Remove enrollment",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/parent_students"] = {
+        get: operation(tags: "Admin / Parent Students", summary: "List parent-student links",
+                       errors: [ 401, 403 ]),
+        post: operation(
+          tags: "Admin / Parent Students",
+          summary: "Link a parent to a student",
+          description: "Parents are not campus members. Campus association is derived from the student's class enrollment.",
+          success: 201,
+          body: ref(:parent_student_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/parent_students/{id}"] = {
+        delete: operation(tags: "Admin / Parent Students", summary: "Remove a parent-student link",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
       }
 
       paths["/v1/feedbacks"] = {

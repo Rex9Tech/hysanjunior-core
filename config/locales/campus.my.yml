@@ -1,0 +1,63 @@
+my:
+  campus:
+    fetched: "Campus စာရင်း ရယူပြီးပါပြီ။"
+    created: "Campus ဖန်တီးပြီးပါပြီ။"
+    updated: "Campus ပြင်ဆင်ပြီးပါပြီ။"
+    discarded: "Campus ဖျက်သိမ်းပြီးပါပြီ။"
+    undiscarded: "Campus ပြန်ထားပြီးပါပြီ။"
+    not_found: "Campus မတွေ့ပါ။"
+    invalid_request: "Campus တောင်းဆိုမှု မမှန်ကန်ပါ။"
+    class_fetched: "အတန်းစာရင်း ရယူပြီးပါပြီ။"
+    class_created: "အတန်း ဖန်တီးပြီးပါပြီ။"
+    class_updated: "အတန်း ပြင်ဆင်ပြီးပါပြီ။"
+    class_discarded: "အတန်း ဖျက်သိမ်းပြီးပါပြီ။"
+    class_undiscarded: "အတန်း ပြန်ထားပြီးပါပြီ။"
+    class_not_found: "အတန်း မတွေ့ပါ။"
+    membership_fetched: "Campus အဖွဲ့ဝင်စာရင်း ရယူပြီးပါပြီ။"
+    membership_created: "Campus အဖွဲ့ဝင် ထည့်ပြီးပါပြီ။"
+    membership_discarded: "Campus အဖွဲ့ဝင် ဖယ်ရှားပြီးပါပြီ။"
+    membership_not_found: "Campus အဖွဲ့ဝင် မတွေ့ပါ။"
+    teacher_required: "အသုံးပြုသူတွင် teacher_admin role ရှိရမည်။"
+    assignment_fetched: "အတန်းဆရာ assignments ရယူပြီးပါပြီ။"
+    assignment_created: "ဆရာကို အတန်းသို့ သတ်မှတ်ပြီးပါပြီ။"
+    assignment_discarded: "အတန်းဆရာ assignment ဖယ်ရှားပြီးပါပြီ။"
+    assignment_not_found: "အတန်းဆရာ assignment မတွေ့ပါ။"
+    teacher_campus_required: "ဆရာသည် အရင် campus အဖွဲ့ဝင် ဖြစ်ရမည်။"
+    enrollment_fetched: "အတန်းစာရင်းသွင်းမှုများ ရယူပြီးပါပြီ။"
+    enrollment_created: "ကျောင်းသားကို အတန်းထဲ ထည့်ပြီးပါပြီ။"
+    enrollment_updated: "အတန်းစာရင်းသွင်းမှု ပြင်ဆင်ပြီးပါပြီ။"
+    enrollment_discarded: "အတန်းစာရင်းသွင်းမှု ဖယ်ရှားပြီးပါပြီ။"
+    enrollment_not_found: "အတန်းစာရင်းသွင်းမှု မတွေ့ပါ။"
+    student_required: "အသုံးပြုသူတွင် student role ရှိရမည်။"
+    student_already_enrolled: "ကျောင်းသားတွင် active အတန်းစာရင်းသွင်းမှု ရှိပြီးသားဖြစ်သည်။"
+    parent_link_fetched: "မိဘ-ကျောင်းသား ချိတ်ဆက်မှုများ ရယူပြီးပါပြီ။"
+    parent_link_created: "မိဘကို ကျောင်းသားနှင့် ချိတ်ပြီးပါပြီ။"
+    parent_link_discarded: "မိဘ-ကျောင်းသား ချိတ်ဆက်မှု ဖယ်ရှားပြီးပါပြီ။"
+    parent_link_not_found: "မိဘ-ကျောင်းသား ချိတ်ဆက်မှု မတွေ့ပါ။"
+    parent_required: "အသုံးပြုသူတွင် parent role ရှိရမည်။"
+    parent_student_same: "မိဘနှင့် ကျောင်းသားသည် လူမတူရပါ။"
+    students_fetched: "Campus ကျောင်းသားစာရင်း ရယူပြီးပါပြီ။"
+  activerecord:
+    errors:
+      models:
+        campus_membership:
+          attributes:
+            user_id:
+              must_be_teacher_admin: "teacher_admin role ရှိရမည်"
+        class_assignment:
+          attributes:
+            user_id:
+              must_be_teacher_admin: "teacher_admin role ရှိရမည်"
+              must_belong_to_campus: "အတန်း၏ campus အဖွဲ့ဝင် ဖြစ်ရမည်"
+        class_enrollment:
+          attributes:
+            user_id:
+              must_be_student: "student role ရှိရမည်"
+              already_enrolled: "active အတန်းစာရင်းသွင်းမှု ရှိပြီးသားဖြစ်သည်"
+        parent_student:
+          attributes:
+            parent_id:
+              must_be_parent: "parent role ရှိရမည်"
+            student_id:
+              must_be_student: "student role ရှိရမည်"
+              must_differ_from_parent: "မိဘနှင့် မတူရပါ"
