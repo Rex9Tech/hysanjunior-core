@@ -254,7 +254,7 @@ Just deliberate engineering, tested boundaries, and a foundation built to remain
 | Sovereign Pillar | Flagship Capabilities | Differentiator vs Traditional Stacks |
 | :--- | :--- | :--- |
 | 🔐 **Identity & Security** | Devise + JWT, 6-digit passcode auth, Google SSO, single-session lock, self-account deletion | Complete zero-trust lifecycle; zero vendor lock-in to Auth0 or Clerk ($$$). |
-| 🛡️ **IAM & Access Control** | Granular RBAC, 96+ system permissions across 23 resources, declarative `user.can?`, frontend `<AccessGate>` | Eliminates clumsy hardcoded roles; scales seamlessly from simple app to enterprise IAM. |
+| 🛡️ **IAM & Access Control** | Granular RBAC, 100+ system permissions across 25 resources, declarative `user.can?`, frontend `<AccessGate>` | Eliminates clumsy hardcoded roles; scales seamlessly from simple app to enterprise IAM. |
 | 💳 **Universal Commerce** | Stripe checkout & billing, Google Play / Apple IAP contracts, discount coupons, referral ledger, durable access entitlements | Multi-provider architecture; entitlement engine divorces billing vendor from access rights. |
 | ⚡ **Hybrid Queues (Solid Queue)** | Rails 8 Fiber isolation (50 I/O workers) + isolated OS threads for media & cron, zero Redis dependency | Blazing fast concurrency on PostgreSQL; zero extra server RAM or external Redis costs. |
 | 📦 **S3 Storage & Media Engine** | Self-hosted Garage S3, async libvips image optimization, FFmpeg video transcoding, SRT subtitles, signed URLs | 100% sovereign object storage with zero egress fees; dedicated media container prevents CPU lockup. |
@@ -323,6 +323,7 @@ Just deliberate engineering, tested boundaries, and a foundation built to remain
 | | Dynamic `X-Locale` / `Accept-Language` Synchronization | ✅ | ✅ | ✅ | [Data & API Design](docs/FOUNDATION.md#data-and-api-design) |
 | | Client Error Telemetry Logging (`/v1/client/logs`) | ✅ | ✅ | ✅ | [Observability](docs/FOUNDATION.md#observability-and-administration) |
 | | User Feedback Engine (1–10 Rating & Auto-Triage) | ✅ | ✅ | ✅ | [Observability](docs/FOUNDATION.md#observability-and-administration) |
+| | Admin CMS Lessons + song/story/vocab/word families/story order/build sentences/MCQ/sort health choices (`/v1/admin/lessons`) | ✅ | Planned | N/A | [Ecosystem](ECOSYSTEM.md) |
 | | In-App Semantic Version Upgrader & Splash Check | ✅ | ✅ | ✅ | [Ecosystem](ECOSYSTEM.md) |
 | | Universal Deep Linking (`rexone://`) & Continue URLs | N/A | ✅ | ✅ | [Ecosystem](ECOSYSTEM.md#9-return-after-auth-protocol--universal-deep-linking-rexone) |
 | | Generative Engine Optimization (GEO & `/llms.txt`) | N/A | ✅ | N/A | [AI Discovery Guide](https://github.com/rex-9/rexone-web/blob/dev/docs/SEO_GEO.md) |

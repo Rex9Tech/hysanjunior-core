@@ -18,8 +18,11 @@ module AiConstants
     SUMMARIZE    = "summarize".freeze
     TRANSLATE    = "translate".freeze
     ANALYZE      = "analyze".freeze
+    WORD_FAMILY  = "word_family".freeze
+    STORY_ORDER  = "story_order".freeze
+    BUILD_THE_SENTENCES = "build_the_sentences".freeze
 
-    ALL = [ CHAT_DEFAULT, SUMMARIZE, TRANSLATE, ANALYZE ].freeze
+    ALL = [ CHAT_DEFAULT, SUMMARIZE, TRANSLATE, ANALYZE, WORD_FAMILY, STORY_ORDER, BUILD_THE_SENTENCES ].freeze
   end
 
   module AnalysisType
@@ -48,12 +51,15 @@ module AiConstants
   end
 
   module RunFeature
-    CHAT      = "chat".freeze
-    SUMMARIZE = "summarize".freeze
-    TRANSLATE = "translate".freeze
-    ANALYZE   = "analyze".freeze
+    CHAT        = "chat".freeze
+    SUMMARIZE   = "summarize".freeze
+    TRANSLATE   = "translate".freeze
+    ANALYZE     = "analyze".freeze
+    WORD_FAMILY = "word_family".freeze
+    STORY_ORDER = "story_order".freeze
+    BUILD_THE_SENTENCES = "build_the_sentences".freeze
 
-    ALL = [ CHAT, SUMMARIZE, TRANSLATE, ANALYZE ].freeze
+    ALL = [ CHAT, SUMMARIZE, TRANSLATE, ANALYZE, WORD_FAMILY, STORY_ORDER, BUILD_THE_SENTENCES ].freeze
   end
 
   module RequestMetadata
@@ -61,6 +67,7 @@ module AiConstants
     ROOM_ID       = "room_id".freeze
     LANGUAGE      = "language".freeze
     ANALYSIS_TYPE = "analysis_type".freeze
+    LESSON_ID     = "lesson_id".freeze
   end
 
   module RunStatus

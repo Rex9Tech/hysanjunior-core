@@ -501,11 +501,12 @@ class V1::Admin::AssetsController < V1::ApplicationController
         ),
         resource_type: "image"
       )
-      thumbnail = replace_thumbnail!(
-        @asset,
-        result,
+      thumbnail = AssetService::Upload.replace_thumbnail!(
+        parent_asset: @asset,
+        result: result,
         fallback_size: file.size,
-        status: processing_status_for(file)
+        status: processing_status_for(file),
+        created_by_id: current_user.id
       )
       enqueue_media_processing_if_needed(thumbnail)
       render_json_response(
@@ -560,68 +561,17 @@ class V1::Admin::AssetsController < V1::ApplicationController
 
   private
 
-  def replace_thumbnail!(asset, result, fallback_size:, status: MediaConstants::Status::READY)
-    previous_storage_key = nil
-    thumbnail = Asset.transaction do
-      existing = Asset.find_by(
-        parent_asset_id: asset.id,
-        type: AssetConstants::AssetType::THUMBNAIL
-      )
-      previous_storage_key = existing&.storage_key
-      attributes = {
-        name: result[:storage_key], url: result[:url],
-        type: AssetConstants::AssetType::THUMBNAIL,
-        format: AssetConstants::AssetFormat::IMAGE,
-        extension: result[:format].presence || MediaConstants::IMAGE_EXT_WEBP,
-        size_bytes: result[:bytes] || fallback_size,
-        source: AssetConstants::AssetSource::UPLOAD,
-        status: status,
-        storage_key: result[:storage_key], assetable: asset.assetable,
-        parent_asset: asset, created_by_id: current_user.id
-      }
-
-      if existing
-        existing.update!(attributes)
-        existing
-      else
-        Asset.create!(attributes)
-      end
-    end
-
-    delete_replaced_storage(previous_storage_key, thumbnail.storage_key, resource_type: "image")
-    asset.association(:thumbnail).reset
-    thumbnail
-  end
-
   def create_subtitle!(asset, result, fallback_size:)
-    Asset.transaction do
-      Asset.create!(
-        name: result[:storage_key], url: result[:url],
-        type: AssetConstants::AssetType::SUBTITLE,
-        format: AssetConstants::AssetFormat::SUBTITLE,
-        extension: MediaConstants::SUBTITLE_EXT_SRT,
-        size_bytes: result[:bytes] || fallback_size,
-        source: AssetConstants::AssetSource::UPLOAD,
-        status: MediaConstants::Status::READY,
-        storage_key: result[:storage_key], assetable: asset.assetable,
-        parent_asset: asset, created_by_id: current_user.id
-      )
-    end
-  end
-
-  def srt_upload?(file)
-    file.present? && file.content_type.to_s.in?(MediaConstants::SUBTITLE_CONTENT_TYPES) && AssetConstants::AssetFormat::SUBTITLE_EXTENSIONS.include?(
-      File.extname(filename_for(file)).delete(".").downcase
+    AssetService::Upload.create_subtitle!(
+      parent_asset: asset,
+      result: result,
+      fallback_size: fallback_size,
+      created_by_id: current_user.id
     )
   end
 
-  def delete_replaced_storage(previous_key, replacement_key, resource_type:)
-    return if previous_key.blank? || previous_key == replacement_key
-
-    StorageService::Client.delete(previous_key, resource_type: resource_type)
-  rescue StandardError => error
-    Rails.error.report(error)
-    Rails.logger.error("[AssetsController] Failed to delete replaced storage object #{previous_key}: #{error.message}")
+  def srt_upload?(file)
+    AssetService::Upload.srt_file?(file)
   end
 
   def admin_asset_message(key, **options)
@@ -698,26 +648,23 @@ class V1::Admin::AssetsController < V1::ApplicationController
   end
 
   def filename_for(file_or_name)
-    file_or_name.respond_to?(:original_filename) ? file_or_name.original_filename.to_s : file_or_name.to_s
+    AssetService::Upload.filename_for(file_or_name)
   end
 
   def determine_resource_type(file_or_name)
-    ext = File.extname(filename_for(file_or_name)).delete(".").downcase
-    AssetConstants::AssetFormat.storage_resource_type(ext)
+    AssetService::Upload.determine_resource_type(file_or_name)
   end
 
   def determine_asset_format(file_or_name)
-    ext = File.extname(filename_for(file_or_name)).delete(".").downcase
-    AssetConstants::AssetFormat.from_extension(ext)
+    AssetService::Upload.determine_asset_format(file_or_name)
   end
 
   def upload_limit_mb(file_or_name)
-    ext = File.extname(filename_for(file_or_name)).delete(".").downcase
-    AssetConstants::AssetFormat.upload_limit_mb(ext)
+    AssetService::Upload.upload_limit_mb(file_or_name)
   end
 
   def upload_within_limit?(file)
-    file.size <= upload_limit_mb(file).megabytes
+    AssetService::Upload.within_upload_limit?(file)
   end
 
   def render_file_size_exceeded(file)
@@ -730,37 +677,11 @@ class V1::Admin::AssetsController < V1::ApplicationController
     )
   end
 
-  # ── Media Processing Helpers ───────────────────────────────
-
   def processing_status_for(file)
-    if MediaConstants::MEDIA_CONTAINER_ENABLED && file_processable?(file)
-      MediaConstants::Status::PENDING
-    else
-      MediaConstants::Status::READY
-    end
+    AssetService::Upload.processing_status_for(file)
   end
 
   def enqueue_media_processing_if_needed(asset)
-    return unless asset.status == MediaConstants::Status::PENDING
-
-    if asset.image_convertible?
-      Media::ConvertImageJob.perform_later(asset_id: asset.id)
-      Rails.logger.info("[AssetsController] Enqueued image conversion for asset #{asset.id}")
-    elsif asset.compressible_video?
-      Media::CompressMediaJob.perform_later(asset_id: asset.id)
-      Media::GenerateVideoThumbnailJob.perform_later(asset_id: asset.id)
-      Rails.logger.info("[AssetsController] Enqueued video compression for asset #{asset.id}")
-    elsif asset.compressible_image?
-      Media::CompressMediaJob.perform_later(asset_id: asset.id)
-      Rails.logger.info("[AssetsController] Enqueued image compression for asset #{asset.id}")
-    elsif asset.compressible_audio?
-      Media::CompressMediaJob.perform_later(asset_id: asset.id)
-      Rails.logger.info("[AssetsController] Enqueued audio compression for asset #{asset.id}")
-    end
-  end
-
-  def file_processable?(file)
-    ext = File.extname(filename_for(file)).delete(".").downcase
-    MediaConstants::Processing::ALL_EXTENSIONS.include?(ext)
+    AssetService::Upload.enqueue_media_processing_if_needed(asset)
   end
 end

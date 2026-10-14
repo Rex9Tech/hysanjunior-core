@@ -36,9 +36,21 @@ module NotificationConstants
     AI_RESPONSE = "ai_response".freeze
     ASSET_COMPRESSION = "asset_compression".freeze
     VIDEO_THUMBNAIL = "video_thumbnail".freeze
+    LESSON_WORD_FAMILIES = "lesson_word_families".freeze
+    LESSON_STORY_ORDER = "lesson_story_order".freeze
+    LESSON_BUILD_THE_SENTENCES = "lesson_build_the_sentences".freeze
     NOTIFICATION_DELIVERY = "notification_delivery".freeze
     PAYMENT_WEBHOOK = "payment_webhook".freeze
-    ALL = [ AI_RESPONSE, ASSET_COMPRESSION, VIDEO_THUMBNAIL, NOTIFICATION_DELIVERY, PAYMENT_WEBHOOK ].freeze
+    ALL = [
+      AI_RESPONSE,
+      ASSET_COMPRESSION,
+      VIDEO_THUMBNAIL,
+      LESSON_WORD_FAMILIES,
+      LESSON_STORY_ORDER,
+      LESSON_BUILD_THE_SENTENCES,
+      NOTIFICATION_DELIVERY,
+      PAYMENT_WEBHOOK
+    ].freeze
   end
 
   module AudienceType
@@ -76,6 +88,12 @@ module NotificationConstants
     SUBSCRIPTION_RESUMED  = "subscription_resumed".freeze
     AI_RESPONSE_READY     = "ai_response_ready".freeze
     AI_RESPONSE_FAILED    = "ai_response_failed".freeze
+    LESSON_WORD_FAMILIES_GENERATED = "lesson_word_families_generated".freeze
+    LESSON_WORD_FAMILIES_FAILED    = "lesson_word_families_failed".freeze
+    LESSON_STORY_ORDER_GENERATED   = "lesson_story_order_generated".freeze
+    LESSON_STORY_ORDER_FAILED      = "lesson_story_order_failed".freeze
+    LESSON_BUILD_THE_SENTENCES_GENERATED = "lesson_build_the_sentences_generated".freeze
+    LESSON_BUILD_THE_SENTENCES_FAILED    = "lesson_build_the_sentences_failed".freeze
     TTS_READY             = "tts_ready".freeze
     TTS_FAILED            = "tts_failed".freeze
     WELCOME               = "welcome".freeze

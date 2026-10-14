@@ -146,6 +146,7 @@ All tables use **UUID** primary keys (`gen_random_uuid()`), soft deletes via **D
 | **Media**            | `Asset`                                                                                                                             | Unified media records, Garage S3 storage keys (`user/{user_id}/...`, `admin/...`), compression telemetry, status (`pending`, `processing`, `ready`, `optimal`), child assets (`parent_asset_id` for thumbnails and subtitles). |
 | **Telemetry**        | `Client::Log`                                                                                                                       | Client error ingest (stack traces, device, OS, browser, URL, severity, cookies, storage keys), linked to optional `version_id`.                                                                                                |
 | **Feedback**         | `Feedback`                                                                                                                          | User rating (1–10), auto-inferred category (`bug`, `feature_request`, `improvement`, `general`), urgency (`low`, `normal`, `high`, `urgent`), device/route telemetry.                                                          |
+| **CMS / Lessons**    | `Lesson`, `Vocabulary`, `WordFamily`, `Question` / `QuestionOption`, `SortHealthChoice` (+ media `Asset`)                           | Admin CMS lesson catalog. Song + story (SRT) + nested vocabularies + word families + `story_order` + `build_the_sentences` + MCQ `questions[]` + `sort_health_choices[]` (label + vocab items reusing `vocabularies` via `sort_health_choice_id`). Async AI generate endpoints persist word families / story order / build sentences directly. Publish also requires ≥1 ready MCQ and ≥1 sort-health group. |
 | **Notifications**    | `Notification`, `UserNotification`                                                                                                  | Multi-channel templates (In-App, Push, Email) with dynamic variable interpolation (`user_name`, `user_email`, `link`, domain entities), persistent inbox receipts with Pagy pagination.                                        |
 | **App Versions**     | `Client::Version`, `Client::UserVersion`                                                                                            | Marketing versions (`draft`, `published`, `yanked`), semantic version comparison, mandatory/optional update evaluation, client installation snapshots.                                                                         |
 
@@ -197,7 +198,7 @@ Solid Queue operates under a hybrid concurrency architecture configured in `conf
 Permissions follow a clean, four-level administrative model:
 
 1. **`super_admin`**: Full system-wide authority over all resources, configurations, and IAM tables.
-2. **`admin`**: Operational control across domain resources (`feedbacks`, `payments`, `ai`, `assets`, `logs`, `notifications`). Restricted from managing `users`, `iam`, `versions`, and `user_versions`.
+2. **`admin`**: Operational control across domain resources (`feedbacks`, `lessons`, `payments`, `ai`, `assets`, `logs`, `notifications`). Restricted from managing `users`, `iam`, `versions`, and `user_versions`.
 3. **Partial Admin (`*_admin`)**: Scoped administrative roles (e.g. `feedback_admin`, `payment_admin`, `ai_admin`).
    - Must use the `*_admin` suffix convention.
    - Grants access only to specific `/v1/admin/*` resources matching the role's assigned permissions.
@@ -218,6 +219,7 @@ Permissions follow a clean, four-level administrative model:
 - **Asset Management**: `GET /v1/assets` (list assets by type), `POST /v1/assets/upload` (direct upload), `GET /v1/assets/:id/playback` (S3 SigV4 signed playback URL), `GET /v1/assets/:id/subtitles/:subtitle_id` (CORS-enabled raw VTT/SRT text). Admin API: `GET/PUT/DELETE /v1/admin/assets`, `GET /v1/admin/assets/storage_stats` (bucket, object, and host disk capacity), manual secondary compression triggers.
 - **Video Thumbnails & Subtitles**: Core generates WebP thumbnails asynchronously and broadcasts `asset_thumbnail_generated`. Admins can upload thumbnail replacements or attach `.srt` subtitle files (`POST /v1/admin/assets/:id/subtitle/upload`). Subtitles are served inline with pre-fetched text.
 - **Notifications**: `GET/POST /v1/admin/notifications`, `POST /v1/admin/notifications/dispatch` (audience fanout by roles/users/all), and `GET/DELETE /v1/admin/user_notifications` (receipt lifecycle, recycle bin management).
+- **CMS Lessons**: Admin-only. `GET/POST /v1/admin/lessons`, `GET/PATCH/PUT/DELETE /v1/admin/lessons/:id`, `POST /v1/admin/lessons/:id/undiscard`, AI generate members (`create_word_families`, `create_story_order`, `create_build_the_sentences`) that persist into the matching lesson fields when the job completes. Create/update nests `vocabularies[]`, `word_families[]`, `questions[]`, and `sort_health_choices[]` (group `label` + nested vocab items stored in `vocabularies` with `sort_health_choice_id`; separate from lesson vocab list) and may set `story_order[]` / `build_the_sentences[]`. Publish requires song+SRT, story+SRT, ≥1 vocab with image, ≥1 word family, non-empty `story_order`, one `{vocab, sentence}` per vocabulary, ≥1 ready MCQ, and ≥1 ready sort-health group. Ordinary users receive no default `lessons` permissions.
 
 ---
 
@@ -299,6 +301,7 @@ Permissions follow a clean, four-level administrative model:
 | **Stripe: Subscriptions & Cancellation/Resumption**                   |      ✅       |          ✅          |            ✅            |
 | **Stripe: Purchase History & Discount Audits**                        |      ✅       |          ✅          |            ✅            |
 | **User Feedback System (1–10 Rating & Auto-Triage)**                  |      ✅       |          ✅          |            ✅            |
+| **CMS: Admin Lessons (song, story, vocabularies, word families)**     |      ✅       |         Planned      |           N/A            |
 | **Chat: Conversational Rooms (AI, Direct, Group)**                    |      ✅       |          ✅          |            ✅            |
 | **AI: Queued Background Execution (DeepSeek / Gemini)**               |      ✅       |          ✅          |            ✅            |
 | **AI: Real-Time WebSocket Completion Alerts**                         |      ✅       |          ✅          |            ✅            |
@@ -448,6 +451,12 @@ Broadcasts async processing events, payment confirmations, and in-app inbox item
 | `access_revoked`            | `product_id`                                                                                     | Manual admin entitlement revocation; JWT invalidated, client signs out.      |
 | `session_expired`           | `{}`                                                                                             | Server session expired; client signs out.                                    |
 | `session_invalidated`       | `{}`                                                                                             | Server session invalidated; client signs out.                                |
+| `lesson_word_families_generated` | `lesson_id`, `run_id`, `word_families`                                                      | AI word families generated and saved on the lesson (`word_families[]` with `id`). |
+| `lesson_word_families_failed`    | `lesson_id`, `run_id`, `error`                                                              | AI word-family generation failed.                                            |
+| `lesson_story_order_generated`   | `lesson_id`, `run_id`, `story_order`                                                        | AI story order generated and saved on the lesson.                            |
+| `lesson_story_order_failed`      | `lesson_id`, `run_id`, `error`                                                              | AI story-order generation failed.                                            |
+| `lesson_build_the_sentences_generated` | `lesson_id`, `run_id`, `build_the_sentences`                                          | AI build-the-sentences generated and saved on the lesson.                    |
+| `lesson_build_the_sentences_failed`    | `lesson_id`, `run_id`, `error`                                                          | AI build-the-sentences generation failed.                                    |
 | `welcome`                   | `{}`                                                                                             | Emitted upon successful Action Cable subscription.                           |
 
 _Navigation targets_: `link` represents the destination. Common internal destinations: `/home`, `/profile`, `/payment`, `/ai`. External URLs (`https://`) open in a new tab on Web and request user confirmation before opening the system browser on Mobile.

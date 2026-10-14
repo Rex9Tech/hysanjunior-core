@@ -86,6 +86,24 @@ erDiagram
   users ||--o{ feedbacks : "submits"
   users ||--o{ client_logs : "originates"
 
+  lessons {
+    uuid id PK
+    string title
+    integer level
+    string unit
+    string status
+    jsonb story_order
+    jsonb build_the_sentences
+  }
+  lessons ||--o| assets : "song assetable"
+  lessons ||--o{ vocabularies : "lesson list (choice_id null)"
+  lessons ||--o{ word_families : "nested"
+  lessons ||--o{ questions : "questionable"
+  lessons ||--o{ sort_health_choices : "healthy-choice groups"
+  sort_health_choices ||--o{ vocabularies : "group items"
+  questions ||--o{ question_options : "options"
+  question_options ||--o| assets : "image assetable"
+
   users ||--o{ user_notifications : "receives"
   notifications ||--o{ user_notifications : "templated_by"
 
@@ -97,6 +115,7 @@ erDiagram
   users ||--o{ assets : "assetable (polymorphic)"
   payment_products ||--o{ assets : "assetable (polymorphic)"
   chat_messages ||--o{ assets : "assetable (polymorphic)"
+  vocabularies ||--o| assets : "image assetable"
 ```
 
 ---
@@ -204,7 +223,7 @@ erDiagram
 | `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `name`              | `string`   |    ❌    | —                   | Unique identifier (e.g. `read_users`, `create_payments`)                                                                                                                                                                                                                                                                                                                                                                  |
 | `action`            | `string`   |    ❌    | —                   | Enum: `read`, `create`, `update`, `delete`                                                                                                                                                                                                                                                                                                                                                                                |
-| `resource`          | `string`   |    ❌    | —                   | Enum of 23 canonical resources (`users`, `accesses`, `assets`, `notifications`, `feedbacks`, `analytics`, `speech`, `ai_profiles`, `ai_runs`, `chat_rooms`, `chat_messages`, `client_logs`, `client_versions`, `client_user_versions`, `iam_roles`, `iam_permissions`, `iam_user_roles`, `payment_products`, `payment_payments`, `payment_subscriptions`, `payment_purchases`, `payment_coupons`, `payment_user_coupons`) |
+| `resource`          | `string`   |    ❌    | —                   | Enum of 25 canonical resources (`users`, `accesses`, `assets`, `notifications`, `user_notifications`, `feedbacks`, `lessons`, `analytics`, `speech`, `ai_profiles`, `ai_runs`, `chat_rooms`, `chat_messages`, `client_logs`, `client_versions`, `client_user_versions`, `iam_roles`, `iam_permissions`, `iam_user_roles`, `payment_products`, `payment_payments`, `payment_subscriptions`, `payment_purchases`, `payment_coupons`, `payment_user_coupons`) |
 | `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -888,9 +907,195 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 ---
 
-## 9. Diagnostics & Logging
+## 9. Content Management
 
-### 9.1. `client_logs`
+### 9.1. `lessons`
+
+- **Model**: [`Lesson`](app/models/lesson.rb)
+- **Description**: Admin CMS lesson catalog. Single-table records with title, numeric level, unit label, publish status, `story_order`, and `build_the_sentences`. Admin-only via `/v1/admin/lessons`. Soft-deleted with Discard. Nested **vocabularies** (lesson list), **word_families**, polymorphic **questions** (MCQ), and **sort_health_choices** (healthy-choice groups whose items reuse `vocabularies` via `sort_health_choice_id`). Publishing also requires ≥1 ready MCQ and ≥1 ready sort-health group. Create/update nests those lists (full-list sync). Async AI generate endpoints (`create_word_families`, `create_story_order`, `create_build_the_sentences`) persist into the matching fields when the job completes.
+
+| Column              | Type       | Nullable | Default             | Description / Notes                                      |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------------------------- |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                              |
+| `title`             | `string`   |    ❌    | —                   | Lesson title (searchable)                                |
+| `level`             | `integer`  |    ❌    | —                   | Numeric level (`>= 1`, filterable)                       |
+| `unit`              | `string`   |    ❌    | —                   | Unit label (filterable + searchable)                     |
+| `status`            | `string`   |    ❌    | `"draft"`           | Enum: `draft`, `published`, `unpublished`                |
+| `story_order`       | `jsonb`    |    ❌    | `[]`                | Ordered array of sentence strings for sequencing practice |
+| `build_the_sentences` | `jsonb`  |    ❌    | `[]`                | Array of `{vocab, sentence}` pairs (one per vocabulary) |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                                        |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                                       |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                                      |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                                       |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                                    |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp                        |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                                          |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                                          |
+
+**Indexes & Foreign Keys**:
+
+- `index_lessons_on_title` (`title`)
+- `index_lessons_on_level` (`level`)
+- `index_lessons_on_unit` (`unit`)
+- `index_lessons_on_status` (`status`)
+- `index_lessons_on_discarded_at` (`discarded_at`)
+- `index_lessons_on_level_and_unit` (`level`, `unit`)
+- FKs: audit columns → `users(id)`.
+- Polymorphic song: `assets.assetable_type = 'Lesson'` + `assets.assetable_id` + `format = audio` (+ SRT children).
+- Polymorphic story: same `assetable` with `format = video` (+ SRT children; optional thumbnail child).
+- Nested lists: `vocabularies` (§9.2), `word_families` (§9.3), `questions` (§9.4), `sort_health_choices` (§9.6).
+
+### 9.2. `vocabularies`
+
+- **Model**: [`Vocabulary`](app/models/vocabulary.rb)
+- **Description**: Ordered vocabulary rows. When `sort_health_choice_id` is null, row belongs to the lesson vocab list (`lesson.vocabularies[]`). When set, row is a healthy-choice item under that group (not returned in the lesson vocab list). Image via pick `image_asset_id` or multipart `image` — no `image_url` column.
+
+| Column              | Type       | Nullable | Default             | Description / Notes                         |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------------ |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                 |
+| `lesson_id`         | `uuid`     |    ❌    | —                   | FK → `lessons`                              |
+| `sort_health_choice_id` | `uuid` |    ✔️    | `NULL`              | FK → `sort_health_choices`; null = lesson list |
+| `vocab`             | `string`   |    ❌    | —                   | Vocabulary text                             |
+| `vowel_symbol`      | `string`   |    ✔️    | `NULL`              | Optional vowel / diacritic symbol            |
+| `position`          | `integer`  |    ❌    | `0`                 | List order (no unique composite index)      |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                           |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                          |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                         |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                          |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                       |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp           |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+
+**Indexes & Foreign Keys**:
+
+- `index_vocabularies_on_lesson_id` (`lesson_id`)
+- `index_vocabularies_on_sort_health_choice_id` (`sort_health_choice_id`)
+- `index_vocabularies_on_position` (`position`)
+- `index_vocabularies_on_lesson_id_and_position` (`lesson_id`, `position`) — non-unique
+- `index_vocabularies_on_discarded_at` (`discarded_at`)
+- FKs: `lesson_id` → `lessons(id)`; `sort_health_choice_id` → `sort_health_choices(id)`; audit columns → `users(id)`.
+- Polymorphic image: `assets.assetable_type = 'Vocabulary'` + `format = image`.
+
+### 9.3. `word_families`
+
+- **Model**: [`WordFamily`](app/models/word_family.rb)
+- **Description**: Ordered rhyme/ending groups for a lesson (`pattern` like `..et`, `words` string array). Synced as nested `lesson.word_families[]` on create/update. AI `create_word_families` overwrites and persists families on the lesson, then broadcasts the saved rows (with `id`) over socket.
+
+| Column              | Type       | Nullable | Default             | Description / Notes                    |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------- |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                            |
+| `lesson_id`         | `uuid`     |    ❌    | —                   | FK → `lessons`                         |
+| `pattern`           | `string`   |    ❌    | —                   | Family pattern (e.g. `..et`)           |
+| `words`             | `jsonb`    |    ❌    | `[]`                | Array of word strings                  |
+| `position`          | `integer`  |    ❌    | `0`                 | List order (non-unique composite)      |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                      |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                     |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                    |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                     |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                  |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp      |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+
+**Indexes & Foreign Keys**:
+
+- `index_word_families_on_lesson_id` (`lesson_id`)
+- `index_word_families_on_position` (`position`)
+- `index_word_families_on_lesson_id_and_position` (`lesson_id`, `position`) — non-unique
+- `index_word_families_on_discarded_at` (`discarded_at`)
+- FKs: `lesson_id` → `lessons(id)`; audit columns → `users(id)`.
+
+### 9.4. `questions`
+
+- **Model**: [`Question`](app/models/question.rb)
+- **Description**: Reusable polymorphic multiple-choice questions (`questionable_type` / `questionable_id`). First host is `Lesson`. Synced as nested `lesson.questions[]` on create/update (array order = `position`; omitted ids destroyed). Kind defaults to `multiple_choice`. Ready when title present, ≥2 options with text, and ≥1 `correct` option (multi-correct allowed).
+
+| Column               | Type       | Nullable | Default             | Description / Notes                         |
+| :------------------- | :--------- | :------: | :------------------ | :------------------------------------------ |
+| `id`                 | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                 |
+| `questionable_type`  | `string`   |    ❌    | —                   | Polymorphic host class                      |
+| `questionable_id`    | `uuid`     |    ❌    | —                   | Polymorphic host id                         |
+| `kind`               | `string`   |    ❌    | `"multiple_choice"` | Question kind enum                          |
+| `title`              | `string`   |    ❌    | —                   | Question prompt                             |
+| `position`           | `integer`  |    ❌    | `0`                 | List order                                  |
+| `created_by_id`      | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                           |
+| `updated_by_id`      | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                          |
+| `discarded_by_id`    | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                         |
+| `undiscarded_by_id`  | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                          |
+| `discarded_at`       | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                       |
+| `undiscarded_at`     | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp           |
+| `created_at`         | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+| `updated_at`         | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+
+**Indexes & Foreign Keys**:
+
+- `index_questions_on_questionable` (`questionable_type`, `questionable_id`)
+- `index_questions_on_questionable_and_position` (`questionable_type`, `questionable_id`, `position`) — non-unique
+- `index_questions_on_position` / `kind` / `discarded_at`
+- FKs: audit columns → `users(id)`.
+
+### 9.5. `question_options`
+
+- **Model**: [`QuestionOption`](app/models/question_option.rb)
+- **Description**: Options for a question. Nested under `questions[].options[]`. `text` required; `correct` boolean (one or more may be true). Optional image via pick `image_asset_id` or multipart `image` (`assets.assetable = QuestionOption`).
+
+| Column              | Type       | Nullable | Default             | Description / Notes                    |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------- |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                            |
+| `question_id`       | `uuid`     |    ❌    | —                   | FK → `questions`                       |
+| `text`              | `string`   |    ❌    | —                   | Option label                           |
+| `correct`           | `boolean`  |    ❌    | `false`             | Whether this option is correct         |
+| `position`          | `integer`  |    ❌    | `0`                 | List order                             |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                      |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                     |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                    |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                     |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                  |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp      |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+
+**Indexes & Foreign Keys**:
+
+- `index_question_options_on_question_id` (`question_id`)
+- `index_question_options_on_question_id_and_position` (`question_id`, `position`) — non-unique
+- `index_question_options_on_position` / `discarded_at`
+- FKs: `question_id` → `questions(id)`; audit columns → `users(id)`.
+- Polymorphic image: `assets.assetable_type = 'QuestionOption'` + `format = image`.
+
+### 9.6. `sort_health_choices`
+
+- **Model**: [`SortHealthChoice`](app/models/sort_health_choice.rb)
+- **Description**: Healthy-choice sort groups for a lesson (`label` + nested vocab items). Synced as `lesson.sort_health_choices[]`. Items are `Vocabulary` rows with `sort_health_choice_id` set (reuse vocabularies table; not part of lesson vocab list). Ready when label present and ≥1 item with vocab.
+
+| Column              | Type       | Nullable | Default             | Description / Notes                    |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------- |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                            |
+| `lesson_id`         | `uuid`     |    ❌    | —                   | FK → `lessons`                         |
+| `label`             | `string`   |    ❌    | —                   | Group label (e.g. Fruits)              |
+| `position`          | `integer`  |    ❌    | `0`                 | List order                             |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                      |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                     |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                    |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                     |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                  |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp      |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+
+**Indexes & Foreign Keys**:
+
+- `index_sort_health_choices_on_lesson_id` (`lesson_id`)
+- `index_sort_health_choices_on_lesson_id_and_position` (`lesson_id`, `position`) — non-unique
+- `index_sort_health_choices_on_position` / `discarded_at`
+- FKs: `lesson_id` → `lessons(id)`; audit columns → `users(id)`.
+
+---
+
+## 10. Diagnostics & Logging
+
+### 10.1. `client_logs`
 
 - **Model**: [`Client::Log`](app/models/client/log.rb)
 - **Description**: Frontend client runtime error tracking, session snapshots, and resolution management. Clients send `app_version`; Core stores nullable `version_id`.
@@ -942,9 +1147,9 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 ---
 
-## 10. Multi-Channel Notifications
+## 11. Multi-Channel Notifications
 
-### 10.1. `notifications`
+### 11.1. `notifications`
 
 - **Model**: [`Notification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/notification.rb)
 - **Description**: Central multi-channel notification registry managing content, placeholders, counters, and provider template IDs for In-App (Socket), Push Notifications, and Email.
@@ -988,7 +1193,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 - `index_notifications_on_discarded_at` (`discarded_at`)
 - FKs to `users(id)` for `created_by_id`, `updated_by_id`, `discarded_by_id`, `undiscarded_by_id`.
 
-### 10.2. `user_notifications`
+### 11.2. `user_notifications`
 
 - **Model**: [`UserNotification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/user_notification.rb)
 - **Description**: Persistent historical inbox store for user in-app notifications dispatched via ActionCable WebSocket. Stores immutable snapshot text rendered at dispatch time.
@@ -1024,9 +1229,9 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 ---
 
-## 11. Versions & Installs
+## 12. Versions & Installs
 
-### 11.1. `client_versions`
+### 12.1. `client_versions`
 
 - **Model**: [`Client::Version`](app/models/client/version.rb)
 - **Description**: Global mobile/web marketing versions. Force-update is stored per row (`is_force_update`). Only one kept row may be `published` at a time: saving a published version yanks every other kept published row. Public check computes `update_required` (client behind the live version) and `must_update` (the live version is force and greater than the client). Store listing URLs live in env (`AppConfig::IOS_STORE_URL`, `AppConfig::ANDROID_STORE_URL`), not on this table.
@@ -1064,7 +1269,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 **Live scope** (public check): kept + `status = published` + (`released_at` is `NULL` or `<= now`). At most one kept published row exists. Versions are discard/undiscard only (non-destroyable). `install_count` is computed (kept `client_user_versions` rows whose `version_id` matches); it is not a stored column. Feedback and client-log ingest send `app_version` (marketing semver); Core links `version_id` when a kept `client_versions.number` matches (using `lookup_by_number` which resolves raw semver or `+build` suffix), otherwise null. Context and metadata retain the client's build number and full version details.
 
-### 11.2. `client_user_versions`
+### 12.2. `client_user_versions`
 
 - **Model**: [`Client::UserVersion`](app/models/client/user_version.rb)
 - **Description**: Current client snapshot per user per platform (`web` / `android` / `ios`). One kept row per pair; repeat checks update `number`, `build_number`, and `last_seen_at`. `User#latest_user_version` is the kept row with the newest `last_seen_at` (Administrate user show).
@@ -1099,7 +1304,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 ---
 
-## 12. Summary Matrix of Core Tables
+## 13. Summary Matrix of Core Tables
 
 | Table Name               | Model                                                                                                           | Domain         | Soft Deletion | Audited | Polymorphic Targets                  |
 | :----------------------- | :-------------------------------------------------------------------------------------------------------------- | :------------- | :-----------: | :-----: | :----------------------------------- |
@@ -1121,6 +1326,12 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 | `ai_runs`                | [`Ai::Run`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/ai/run.rb)                              | AI / Chat      |      ✔️       |   ✔️    | —                                    |
 | `assets`                 | [`Asset`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/asset.rb)                                 | Media          |      ✔️       |   ✔️    | Belongs to `assetable` (Polymorphic) |
 | `feedbacks`              | [`Feedback`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/feedback.rb)                           | Support        |      ✔️       |   ✔️    | —                                    |
+| `lessons`                | [`Lesson`](app/models/lesson.rb)                                                                                | CMS            |      ✔️       |   ✔️    | `assets`, `vocabularies`, `word_families`, `questions`, `sort_health_choices` |
+| `vocabularies`           | [`Vocabulary`](app/models/vocabulary.rb)                                                                        | CMS            |      ✔️       |   ✔️    | `assets` (image); optional `sort_health_choice` |
+| `word_families`          | [`WordFamily`](app/models/word_family.rb)                                                                       | CMS            |      ✔️       |   ✔️    | —                                    |
+| `questions`              | [`Question`](app/models/question.rb)                                                                            | CMS            |      ✔️       |   ✔️    | `question_options` (polymorphic host) |
+| `question_options`       | [`QuestionOption`](app/models/question_option.rb)                                                               | CMS            |      ✔️       |   ✔️    | `assets` (image)                     |
+| `sort_health_choices`    | [`SortHealthChoice`](app/models/sort_health_choice.rb)                                                          | CMS            |      ✔️       |   ✔️    | `vocabularies` (group items)         |
 | `client_logs`            | [`Client::Log`](app/models/client/log.rb)                                                                       | Diagnostics    |      ✔️       |   ✔️    | —                                    |
 | `notifications`          | [`Notification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/notification.rb)                   | Notifications  |      ✔️       |   ✔️    | —                                    |
 | `user_notifications`     | [`UserNotification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/user_notification.rb)          | Notifications  |      ✔️       |   ✔️    | —                                    |
@@ -1129,7 +1340,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 ---
 
-## 13. Excluded Infrastructure Tables
+## 14. Excluded Infrastructure Tables
 
 The following tables are managed automatically by backend engine gems and are excluded from core application business logic:
 

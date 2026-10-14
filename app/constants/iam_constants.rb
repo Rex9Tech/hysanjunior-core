@@ -33,6 +33,7 @@ module IamConstants
     ASSETS                = "assets".freeze
     NOTIFICATIONS         = "notifications".freeze
     FEEDBACKS             = "feedbacks".freeze
+    LESSONS               = "lessons".freeze
     ANALYTICS             = "analytics".freeze
     SPEECH                = "speech".freeze
 
@@ -56,7 +57,7 @@ module IamConstants
     USER_NOTIFICATIONS    = "user_notifications".freeze
 
     ALL = [
-      USERS, ACCESSES, ASSETS, NOTIFICATIONS, USER_NOTIFICATIONS, FEEDBACKS, ANALYTICS, SPEECH,
+      USERS, ACCESSES, ASSETS, NOTIFICATIONS, USER_NOTIFICATIONS, FEEDBACKS, LESSONS, ANALYTICS, SPEECH,
       AI_PROFILES, AI_RUNS, CHAT_ROOMS, CHAT_MESSAGES,
       CLIENT_LOGS, CLIENT_VERSIONS, CLIENT_USER_VERSIONS,
       IAM_ROLES, IAM_PERMISSIONS, IAM_USER_ROLES,

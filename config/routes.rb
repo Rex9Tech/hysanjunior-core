@@ -272,6 +272,15 @@ Rails.application.routes.draw do
 
       resources :feedbacks, only: %i[index show update destroy]
 
+      resources :lessons do
+        member do
+          post :undiscard
+          post :create_word_families
+          post :create_story_order
+          post :create_build_the_sentences
+        end
+      end
+
       namespace :client do
         resources :versions, only: %i[index show create update] do
           collection do

@@ -365,54 +365,27 @@ class V1::AssetsController < V1::ApplicationController
   end
 
   def filename_for(file_or_name)
-    file_or_name.respond_to?(:original_filename) ? file_or_name.original_filename.to_s : file_or_name.to_s
+    AssetService::Upload.filename_for(file_or_name)
   end
 
   def determine_resource_type(file_or_name)
-    ext = File.extname(filename_for(file_or_name)).delete(".").downcase
-    AssetConstants::AssetFormat.storage_resource_type(ext)
+    AssetService::Upload.determine_resource_type(file_or_name)
   end
 
   def determine_asset_format(file_or_name)
-    ext = File.extname(filename_for(file_or_name)).delete(".").downcase
-    AssetConstants::AssetFormat.from_extension(ext)
+    AssetService::Upload.determine_asset_format(file_or_name)
   end
 
   def upload_limit_mb(file_or_name)
-    ext = File.extname(filename_for(file_or_name)).delete(".").downcase
-    AssetConstants::AssetFormat.upload_limit_mb(ext)
+    AssetService::Upload.upload_limit_mb(file_or_name)
   end
 
   def processing_status_for(file)
-    if MediaConstants::MEDIA_CONTAINER_ENABLED && file_processable?(file)
-      MediaConstants::Status::PENDING
-    else
-      MediaConstants::Status::READY
-    end
+    AssetService::Upload.processing_status_for(file)
   end
 
   def enqueue_media_processing_if_needed(asset)
-    return unless asset.status == MediaConstants::Status::PENDING
-
-    if asset.image_convertible?
-      Media::ConvertImageJob.perform_later(asset_id: asset.id)
-      Rails.logger.info("[AssetsController] Enqueued image conversion for asset #{asset.id}")
-    elsif asset.compressible_video?
-      Media::CompressMediaJob.perform_later(asset_id: asset.id)
-      Media::GenerateVideoThumbnailJob.perform_later(asset_id: asset.id)
-      Rails.logger.info("[AssetsController] Enqueued video compression for asset #{asset.id}")
-    elsif asset.compressible_image?
-      Media::CompressMediaJob.perform_later(asset_id: asset.id)
-      Rails.logger.info("[AssetsController] Enqueued image compression for asset #{asset.id}")
-    elsif asset.compressible_audio?
-      Media::CompressMediaJob.perform_later(asset_id: asset.id)
-      Rails.logger.info("[AssetsController] Enqueued audio compression for asset #{asset.id}")
-    end
-  end
-
-  def file_processable?(file)
-    ext = File.extname(filename_for(file)).delete(".").downcase
-    MediaConstants::Processing::ALL_EXTENSIONS.include?(ext)
+    AssetService::Upload.enqueue_media_processing_if_needed(asset)
   end
 
   # Normalizes SRT / VTT subtitle strings into standard WebVTT format for browser players
