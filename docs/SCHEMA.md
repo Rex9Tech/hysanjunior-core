@@ -111,6 +111,8 @@ erDiagram
   users ||--o{ class_assignments : "teacher"
   school_classes ||--o{ class_enrollments : "enrolls"
   users ||--o{ class_enrollments : "student"
+  school_classes ||--o{ class_homeworks : "assigns"
+  lessons ||--o{ class_homeworks : "source"
   users ||--o{ parent_students : "parent"
   users ||--o{ parent_students : "student"
 
@@ -233,7 +235,7 @@ erDiagram
 | `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `name`              | `string`   |    ❌    | —                   | Unique identifier (e.g. `read_users`, `create_payments`)                                                                                                                                                                                                                                                                                                                                                                  |
 | `action`            | `string`   |    ❌    | —                   | Enum: `read`, `create`, `update`, `delete`                                                                                                                                                                                                                                                                                                                                                                                |
-| `resource`          | `string`   |    ❌    | —                   | Enum of canonical resources including `users`, `accesses`, `assets`, `notifications`, `user_notifications`, `feedbacks`, `lessons`, `campuses`, `school_classes`, `campus_memberships`, `class_assignments`, `class_enrollments`, `parent_students`, `analytics`, `speech`, `ai_profiles`, `ai_runs`, `chat_rooms`, `chat_messages`, `client_logs`, `client_versions`, `client_user_versions`, `iam_roles`, `iam_permissions`, `iam_user_roles`, `payment_products`, `payment_payments`, `payment_subscriptions`, `payment_purchases`, `payment_coupons`, `payment_user_coupons` |
+| `resource`          | `string`   |    ❌    | —                   | Enum of canonical resources including `users`, `accesses`, `assets`, `notifications`, `user_notifications`, `feedbacks`, `lessons`, `campuses`, `school_classes`, `campus_memberships`, `class_assignments`, `class_enrollments`, `class_homeworks`, `parent_students`, `analytics`, `speech`, `ai_profiles`, `ai_runs`, `chat_rooms`, `chat_messages`, `client_logs`, `client_versions`, `client_user_versions`, `iam_roles`, `iam_permissions`, `iam_user_roles`, `payment_products`, `payment_payments`, `payment_subscriptions`, `payment_purchases`, `payment_coupons`, `payment_user_coupons` |
 | `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -1104,13 +1106,15 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 ### 9.7. `campuses`
 
 - **Model**: [`Campus`](app/models/campus.rb)
-- **Description**: Admin CMS campus (school site). Has many `school_classes` and `campus_memberships` (teachers only). Student roster is derived via class enrollments. Soft-deleted with Discard.
+- **Description**: Admin CMS campus (school site). Has many `school_classes` and `campus_memberships` (teachers only). Optional campus photo via polymorphic `assets` (`thumbnail`). Student roster is derived via class enrollments. Soft-deleted with Discard.
 
 | Column              | Type       | Nullable | Default             | Description / Notes                         |
 | :------------------ | :--------- | :------: | :------------------ | :------------------------------------------ |
 | `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                 |
 | `name`              | `string`   |    ❌    | —                   | Campus name (searchable)                    |
 | `code`              | `string`   |    ✔️    | `NULL`              | Optional unique code (kept rows)            |
+| `phone`             | `string`   |    ✔️    | `NULL`              | Contact phone (searchable)                  |
+| `location`          | `text`     |    ✔️    | `NULL`              | Address / location text (searchable)        |
 | `status`            | `string`   |    ❌    | `"active"`          | Enum: `active`, `inactive`                  |
 | `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                           |
 | `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                          |
@@ -1122,6 +1126,8 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 | `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
 
 **Indexes & Foreign Keys**: unique partial `code` where kept; indexes on `name`, `status`, `discarded_at`; audit FKs → `users(id)`.
+
+**Image**: optional `Asset` with `assetable_type = Campus`, `type = thumbnail`. API accepts `image_asset_id` on create/update; serializer returns `image_asset_id` + nested `image`.
 
 ### 9.8. `school_classes`
 
@@ -1175,7 +1181,26 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 | `status`          | `string` |    ❌    | `"active"`     | Enum: `active`, `left`                      |
 | audit + discard cols | —     | —        | —              | Same pattern as campuses                    |
 
-### 9.12. `parent_students`
+### 9.12. `class_homeworks`
+
+- **Model**: [`ClassHomework`](app/models/class_homework.rb)
+- **Description**: Class-level homework assignment. Picks a lesson, an ordered non-empty subset of the 11 catalog `activity_keys`, and optional `play_song_at_first` / `play_story_at_first` media intros. Same `(school_class_id, lesson_id)` may exist multiple times (no uniqueness). Active enrollments inherit the assignment; per-student completion is out of scope for v1.
+
+| Column                 | Type      | Nullable | Default             | Description / Notes                                                                 |
+| :--------------------- | :-------- | :------: | :------------------ | :---------------------------------------------------------------------------------- |
+| `id`                   | `uuid`    |    ❌    | `gen_random_uuid()` | Primary Key                                                                         |
+| `school_class_id`      | `uuid`    |    ❌    | —                   | FK → `school_classes`                                                               |
+| `lesson_id`            | `uuid`    |    ❌    | —                   | FK → `lessons`                                                                      |
+| `activity_keys`        | `jsonb`   |    ❌    | `[]`                | Ordered unique subset of `CampusConstants::HomeworkActivity::ALL` (11 keys)         |
+| `play_song_at_first`   | `boolean` |    ❌    | `false`             | Play lesson song before ordered activities                                          |
+| `play_story_at_first`  | `boolean` |    ❌    | `false`             | Play lesson story before ordered activities                                         |
+| `title`                | `string`  |    ✔️    | `NULL`              | Optional admin label                                                                |
+| `due_on`               | `date`    |    ✔️    | `NULL`              | Optional due date                                                                   |
+| audit + discard cols   | —         | —        | —                   | Same pattern as campuses                                                            |
+
+**Activity catalog keys**: `listen_and_tap`, `speak_and_record`, `trace_and_write`, `blend_the_sound`, `sort_the_word_families`, `read_a_story`, `sing_and_chant`, `put_the_story_in_order`, `build_the_sentences`, `made_good_choice`, `sort_healthy_choices`.
+
+### 9.13. `parent_students`
 
 - **Model**: [`ParentStudent`](app/models/parent_student.rb)
 - **Description**: Links a `parent` user to a `student` user. No campus membership. Parent’s campuses are derived through the student’s active class enrollment.
@@ -1428,11 +1453,12 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 | `questions`              | [`Question`](app/models/question.rb)                                                                            | CMS            |      ✔️       |   ✔️    | `question_options` (polymorphic host) |
 | `question_options`       | [`QuestionOption`](app/models/question_option.rb)                                                               | CMS            |      ✔️       |   ✔️    | `assets` (image)                     |
 | `sort_health_choices`    | [`SortHealthChoice`](app/models/sort_health_choice.rb)                                                          | CMS            |      ✔️       |   ✔️    | `vocabularies` (group items)         |
-| `campuses`               | [`Campus`](app/models/campus.rb)                                                                                | CMS            |      ✔️       |   ✔️    | `school_classes`, `campus_memberships` |
-| `school_classes`         | [`SchoolClass`](app/models/school_class.rb)                                                                     | CMS            |      ✔️       |   ✔️    | `class_enrollments`                  |
+| `campuses`               | [`Campus`](app/models/campus.rb)                                                                                | CMS            |      ✔️       |   ✔️    | `school_classes`, `campus_memberships`, `assets` |
+| `school_classes`         | [`SchoolClass`](app/models/school_class.rb)                                                                     | CMS            |      ✔️       |   ✔️    | `class_enrollments`, `class_homeworks` |
 | `campus_memberships`     | [`CampusMembership`](app/models/campus_membership.rb)                                                           | CMS            |      ✔️       |   ✔️    | —                                    |
 | `class_assignments`      | [`ClassAssignment`](app/models/class_assignment.rb)                                                             | CMS            |      ✔️       |   ✔️    | —                                    |
 | `class_enrollments`      | [`ClassEnrollment`](app/models/class_enrollment.rb)                                                             | CMS            |      ✔️       |   ✔️    | —                                    |
+| `class_homeworks`        | [`ClassHomework`](app/models/class_homework.rb)                                                                 | CMS            |      ✔️       |   ✔️    | —                                    |
 | `parent_students`        | [`ParentStudent`](app/models/parent_student.rb)                                                                 | CMS            |      ✔️       |   ✔️    | —                                    |
 | `client_logs`            | [`Client::Log`](app/models/client/log.rb)                                                                       | Diagnostics    |      ✔️       |   ✔️    | —                                    |
 | `notifications`          | [`Notification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/notification.rb)                   | Notifications  |      ✔️       |   ✔️    | —                                    |

@@ -7,6 +7,7 @@ class Lesson < ApplicationRecord
   has_many :word_families, -> { ordered }, dependent: :destroy, inverse_of: :lesson
   has_many :questions, -> { ordered }, as: :questionable, dependent: :destroy, inverse_of: :questionable
   has_many :sort_health_choices, -> { ordered }, dependent: :destroy, inverse_of: :lesson
+  has_many :class_homeworks, dependent: :restrict_with_error
 
   # ===== ENUMS =====
   enum :status, LessonConstants::Status::ALL.index_with(&:itself), prefix: true, validate: true

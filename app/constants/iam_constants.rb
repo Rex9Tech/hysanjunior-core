@@ -42,7 +42,9 @@ module IamConstants
     CAMPUS_MEMBERSHIPS    = "campus_memberships".freeze
     CLASS_ASSIGNMENTS     = "class_assignments".freeze
     CLASS_ENROLLMENTS     = "class_enrollments".freeze
+    CLASS_HOMEWORKS       = "class_homeworks".freeze
     PARENT_STUDENTS       = "parent_students".freeze
+
     ANALYTICS             = "analytics".freeze
     SPEECH                = "speech".freeze
 
@@ -67,7 +69,8 @@ module IamConstants
 
     ALL = [
       USERS, ACCESSES, ASSETS, NOTIFICATIONS, USER_NOTIFICATIONS, FEEDBACKS, LESSONS,
-      CAMPUSES, SCHOOL_CLASSES, CAMPUS_MEMBERSHIPS, CLASS_ASSIGNMENTS, CLASS_ENROLLMENTS, PARENT_STUDENTS,
+      CAMPUSES, SCHOOL_CLASSES, CAMPUS_MEMBERSHIPS, CLASS_ASSIGNMENTS, CLASS_ENROLLMENTS, CLASS_HOMEWORKS, PARENT_STUDENTS,
+
       ANALYTICS, SPEECH,
       AI_PROFILES, AI_RUNS, CHAT_ROOMS, CHAT_MESSAGES,
       CLIENT_LOGS, CLIENT_VERSIONS, CLIENT_USER_VERSIONS,

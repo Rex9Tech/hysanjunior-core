@@ -28,12 +28,42 @@ RSpec.describe "V1 Admin Campuses API", type: :request do
   describe "POST /v1/admin/campuses" do
     it "creates a campus" do
       post "/v1/admin/campuses", params: {
-        campus: { name: "Downtown", code: "DT1", status: CampusConstants::Status::ACTIVE }
+        campus: {
+          name: "Downtown",
+          code: "DT1",
+          phone: "09444440120",
+          location: "Times City, Yangon",
+          status: CampusConstants::Status::ACTIVE
+        }
       }, headers: headers
 
       expect(response).to have_http_status(:created)
       expect(response_data.dig("attributes", "name")).to eq("Downtown")
       expect(response_data.dig("attributes", "code")).to eq("DT1")
+      expect(response_data.dig("attributes", "phone")).to eq("09444440120")
+      expect(response_data.dig("attributes", "location")).to eq("Times City, Yangon")
+    end
+
+    it "attaches an image asset as campus thumbnail" do
+      asset = create(
+        :asset,
+        type: AssetConstants::AssetType::GENERAL,
+        format: AssetConstants::AssetFormat::IMAGE,
+        extension: "jpg",
+        status: MediaConstants::Status::READY
+      )
+
+      post "/v1/admin/campuses", params: {
+        campus: {
+          name: "Photo Campus",
+          image_asset_id: asset.id
+        }
+      }, headers: headers
+
+      expect(response).to have_http_status(:created)
+      expect(response_data.dig("attributes", "image_asset_id")).to eq(asset.id)
+      expect(asset.reload.assetable_type).to eq("Campus")
+      expect(asset.type).to eq(AssetConstants::AssetType::THUMBNAIL)
     end
   end
 

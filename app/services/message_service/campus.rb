@@ -39,5 +39,11 @@ module MessageService
     PARENT_REQUIRED = "campus.parent_required"
     PARENT_STUDENT_SAME = "campus.parent_student_same"
     STUDENTS_FETCHED = "campus.students_fetched"
+    HOMEWORK_FETCHED = "campus.homework_fetched"
+    HOMEWORK_CREATED = "campus.homework_created"
+    HOMEWORK_UPDATED = "campus.homework_updated"
+    HOMEWORK_DISCARDED = "campus.homework_discarded"
+    HOMEWORK_NOT_FOUND = "campus.homework_not_found"
   end
 end
+

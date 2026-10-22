@@ -16,7 +16,7 @@ class V1::Admin::CampusesController < V1::ApplicationController
       sort(campuses, columns: SortConstants::Columns::CAMPUS)
     end
     pagy, records = pagy(
-      campuses.includes(:school_classes, :campus_memberships),
+      campuses.includes(:school_classes, :campus_memberships, :assets),
       limit: filters[:limit]
     )
 
@@ -38,27 +38,29 @@ class V1::Admin::CampusesController < V1::ApplicationController
 
   # POST /v1/admin/campuses
   def create
-    campus = Campus.create!(campus_params)
+    campus = Campus.create!(campus_attributes)
+    assign_image!(campus) if image_param_provided?
 
     render_json_response(
       status_code: 201,
       message: campus_message(MessageService::Campus::CREATED),
-      data: CampusSerializer.record(campus)
+      data: CampusSerializer.record(campus.reload)
     )
-  rescue ActiveRecord::RecordInvalid => error
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => error
     render_campus_failure(error)
   end
 
   # PUT/PATCH /v1/admin/campuses/:id
   def update
-    @campus.update!(campus_params)
+    @campus.update!(campus_attributes)
+    assign_image!(@campus) if image_param_provided?
 
     render_json_response(
       status_code: 200,
       message: campus_message(MessageService::Campus::UPDATED),
-      data: CampusSerializer.record(@campus)
+      data: CampusSerializer.record(@campus.reload)
     )
-  rescue ActiveRecord::RecordInvalid => error
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => error
     render_campus_failure(error)
   end
 
@@ -104,7 +106,7 @@ class V1::Admin::CampusesController < V1::ApplicationController
   private
 
   def set_campus
-    @campus = Campus.kept.includes(:school_classes, :campus_memberships).find(params.permit(:id)[:id])
+    @campus = Campus.kept.includes(:school_classes, :campus_memberships, :assets).find(params.permit(:id)[:id])
   rescue ActiveRecord::RecordNotFound
     render_json_response(
       status_code: 404,
@@ -114,7 +116,7 @@ class V1::Admin::CampusesController < V1::ApplicationController
   end
 
   def set_campus_including_discarded
-    @campus = Campus.with_discarded.find(params.permit(:id)[:id])
+    @campus = Campus.with_discarded.includes(:assets).find(params.permit(:id)[:id])
   rescue ActiveRecord::RecordNotFound
     render_json_response(
       status_code: 404,
@@ -124,10 +126,16 @@ class V1::Admin::CampusesController < V1::ApplicationController
   end
 
   def render_campus_failure(error)
+    message = if error.is_a?(ActiveRecord::RecordInvalid)
+      error.record.errors.full_messages.join(", ")
+    else
+      error.message
+    end
+
     render_json_response(
       status_code: 422,
       message: campus_message(MessageService::Campus::INVALID),
-      error: error.record.errors.full_messages.join(", ")
+      error: message
     )
   end
 
@@ -140,7 +148,28 @@ class V1::Admin::CampusesController < V1::ApplicationController
   end
 
   def campus_params
-    params.require(:campus).permit(:name, :code, :status)
+    params.require(:campus).permit(:name, :code, :phone, :location, :status, :image_asset_id)
+  end
+
+  def campus_attributes
+    campus_params.except(:image_asset_id)
+  end
+
+  def image_param_provided?
+    campus_params.key?(:image_asset_id)
+  end
+
+  def assign_image!(campus)
+    image_asset_id = campus_params[:image_asset_id]
+
+    if image_asset_id.present?
+      asset = Asset.find(image_asset_id)
+      old_images = campus.assets.where(type: AssetConstants::AssetType::THUMBNAIL).where.not(id: asset.id)
+      Asset.purge_and_destroy_all!(old_images)
+      asset.update!(assetable: campus, type: AssetConstants::AssetType::THUMBNAIL)
+    else
+      Asset.purge_and_destroy_all!(campus.assets.where(type: AssetConstants::AssetType::THUMBNAIL))
+    end
   end
 
   def campus_message(key, **options)

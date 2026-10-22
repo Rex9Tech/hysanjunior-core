@@ -24,7 +24,9 @@ module SortConstants
     CAMPUS_MEMBERSHIP = %w[created_at kind].freeze
     CLASS_ASSIGNMENT = %w[created_at].freeze
     CLASS_ENROLLMENT = %w[created_at status].freeze
+    CLASS_HOMEWORK = %w[created_at due_on].freeze
     PARENT_STUDENT = %w[created_at].freeze
+
     VERSION     = %w[created_at number title status released_at discarded_at install_count].freeze
     USER_VERSION = %w[last_seen_at number platform created_at].freeze
     CLIENT_LOG  = %w[created_at occurrence_count resolved_at].freeze

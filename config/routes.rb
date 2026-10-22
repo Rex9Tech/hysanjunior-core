@@ -297,6 +297,7 @@ Rails.application.routes.draw do
       resources :campus_memberships, only: %i[index show create destroy]
       resources :class_assignments, only: %i[index create destroy]
       resources :class_enrollments, only: %i[index show create update destroy]
+      resources :class_homeworks, only: %i[index show create update destroy]
       resources :parent_students, only: %i[index create destroy]
 
       namespace :client do

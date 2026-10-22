@@ -132,6 +132,8 @@ initial_version.assign_attributes(
 initial_version.save!
 puts "✅ Client version #{initial_version.number} (#{initial_version.status}) ready"
 
+load Rails.root.join("db/seeds/campuses.rb")
+
 puts "✅ Seeding complete!"
 
 puts "\n📋 Summary:"
@@ -142,3 +144,4 @@ puts "  - #{Iam::UserRole.count} user-role assignments"
 puts "  - #{User.count} users"
 puts "  - #{Ai::Profile.count} AI profiles"
 puts "  - #{Client::Version.count} client versions"
+puts "  - #{Campus.kept.count} campuses"

@@ -437,8 +437,20 @@ module Openapi
         required: [ :campus ],
         campus: object(
           required: [ :name ],
-          name: { type: :string, example: "Downtown Campus" },
-          code: { type: :string, nullable: true, example: "DT1" },
+          name: { type: :string, example: "Yangon (TimeCity) Campus" },
+          code: { type: :string, nullable: true, example: "YGN_TIMECITY" },
+          phone: { type: :string, nullable: true, example: "09444440120" },
+          location: {
+            type: :string,
+            nullable: true,
+            example: "Times City, Shop House No. 215, Kamayut, Yangon"
+          },
+          image_asset_id: {
+            type: :string,
+            format: :uuid,
+            nullable: true,
+            description: "Optional Asset id to attach as campus thumbnail. Pass null to clear."
+          },
           status: {
             type: :string,
             nullable: true,
@@ -447,6 +459,7 @@ module Openapi
           }
         )
       ),
+
       school_class_request: object(
         required: [ :school_class ],
         school_class: object(
@@ -510,6 +523,26 @@ module Openapi
           student_id: { type: :string, format: :uuid, description: "User must have student role." }
         )
       ),
+      class_homework_request: object(
+        required: [ :class_homework ],
+        class_homework: object(
+          required: [ :school_class_id, :lesson_id, :activity_keys ],
+          school_class_id: { type: :string, format: :uuid },
+          lesson_id: { type: :string, format: :uuid },
+          activity_keys: {
+            type: :array,
+            items: { type: :string, enum: CampusConstants::HomeworkActivity::ALL },
+            minItems: 1,
+            uniqueItems: true,
+            description: "Ordered subset of the 11 homework activities. Same lesson may be assigned multiple times."
+          },
+          play_song_at_first: { type: :boolean, nullable: true, example: false },
+          play_story_at_first: { type: :boolean, nullable: true, example: false },
+          title: { type: :string, nullable: true, example: "Week 1 practice" },
+          due_on: { type: :string, format: :date, nullable: true }
+        )
+      ),
+
       lesson_request: object(
         required: [ :lesson ],
         lesson: object(
@@ -2516,6 +2549,34 @@ module Openapi
                          parameters: [ path_parameter(:id) ], body: ref(:class_enrollment_request),
                          errors: [ 401, 403, 404, 422 ]),
         delete: operation(tags: "Admin / Class Enrollments", summary: "Remove enrollment",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/class_homeworks"] = {
+        get: operation(
+          tags: "Admin / Class Homeworks",
+          summary: "List class homeworks",
+          description: "Filter by school_class_id, lesson_id, or campus_id. Same lesson may appear multiple times per class.",
+          errors: [ 401, 403 ]
+        ),
+        post: operation(
+          tags: "Admin / Class Homeworks",
+          summary: "Assign homework to a school class",
+          description: "Pick a lesson, ordered activity_keys from the 11 catalog activities, optional play song/story at first.",
+          success: 201,
+          body: ref(:class_homework_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/class_homeworks/{id}"] = {
+        get: operation(tags: "Admin / Class Homeworks", summary: "Get class homework details",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        put: operation(tags: "Admin / Class Homeworks", summary: "Update class homework",
+                       parameters: [ path_parameter(:id) ], body: ref(:class_homework_request),
+                       errors: [ 401, 403, 404, 422 ]),
+        patch: operation(tags: "Admin / Class Homeworks", summary: "Update class homework",
+                         parameters: [ path_parameter(:id) ], body: ref(:class_homework_request),
+                         errors: [ 401, 403, 404, 422 ]),
+        delete: operation(tags: "Admin / Class Homeworks", summary: "Remove class homework",
                           parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
       }
       paths["/v1/admin/parent_students"] = {

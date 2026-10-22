@@ -6,6 +6,8 @@ class SchoolClass < ApplicationRecord
   has_many :students, through: :class_enrollments, source: :user
   has_many :class_assignments, dependent: :destroy, inverse_of: :school_class
   has_many :teachers, through: :class_assignments, source: :user
+  has_many :class_homeworks, dependent: :destroy, inverse_of: :school_class
+
 
   enum :status, CampusConstants::Status::ALL.index_with(&:itself), prefix: true, validate: true
 
