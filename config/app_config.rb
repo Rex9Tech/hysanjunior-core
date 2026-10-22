@@ -2,7 +2,7 @@
 
 # config/app_config.rb
 # ==============================================================================
-# 🏛️ RexOne Core Centralized Application Configuration (Law U2 & Law U14)
+# 🏛️ Hysan Junior Core Centralized Application Configuration (Law U2 & Law U14)
 # ==============================================================================
 # Single source of truth for all environment variables, system timeouts, third-party
 # provider keys, and hardware concurrency limits.
@@ -53,7 +53,7 @@ module AppConfig
   RAILS_MAX_THREADS           = env_or.call("RAILS_MAX_THREADS", "7").to_i
   DB_POOL                     = env_or.call("DB_POOL", RAILS_MAX_THREADS.to_s).to_i
   DATABASE_URL                = env_or.call("RAILS_DATABASE_URL") || env_or.call("DATABASE_URL")
-  TEST_DATABASE_URL           = env_or.call("RAILS_TEST_DATABASE_URL") || DATABASE_URL&.sub(%r{/[^/]+\z}, "/rexone_core_test")
+  TEST_DATABASE_URL           = env_or.call("RAILS_TEST_DATABASE_URL") || DATABASE_URL&.sub(%r{/[^/]+\z}, "/hysanjunio_core_test")
 
   # ----------------------------------------------------------------------------
   # ⚡ Solid Queue, Concurrency & Workers
@@ -110,7 +110,7 @@ module AppConfig
   CLOUDINARY_API_SECRET       = env_or.call("CLOUDINARY_API_SECRET", "")
 
   # Local Storage
-  LOCAL_STORAGE_PATH          = env_or.call("LOCAL_STORAGE_PATH", File.expand_path("../../storage", __dir__))
+  LOCAL_STORAGE_PATH          = env_or.call("LOCAL_STORAGE_PATH", File.expand_path("../storage", __dir__))
 
   # Media Processing & Hardware Limits
   MEDIA_CONTAINER_ENABLED     = env_or.call("MEDIA_CONTAINER_ENABLED", "true") == "true"
@@ -202,6 +202,13 @@ module AppConfig
   IOS_STORE_URL               = env_or.call("IOS_STORE_URL", nil)
   ANDROID_STORE_URL           = env_or.call("ANDROID_STORE_URL", nil)
   # ----------------------------------------------------------------------------
+  # 👑 Initial Super Admin Seeding
+  # ----------------------------------------------------------------------------
+  SEED_SUPER_ADMIN_EMAIL      = env_or.call("SEED_SUPER_ADMIN_EMAIL", nil)
+  SEED_SUPER_ADMIN_PASSWORD   = env_or.call("SEED_SUPER_ADMIN_PASSWORD", nil)
+  SEED_SUPER_ADMIN_USERNAME   = env_or.call("SEED_SUPER_ADMIN_USERNAME", nil)
+
+  # ----------------------------------------------------------------------------
   # 🛡️ Diagnostics & Boot Guard
   # ----------------------------------------------------------------------------
   ENFORCE_BOOT_GUARD          = env_or.call("ENFORCE_BOOT_GUARD") == "true"
@@ -217,7 +224,7 @@ module AppConfig
       return base if path.blank?
 
       p = path.to_s.strip
-      return p if p.start_with?("http://", "https://", "mailto:", "tel:", "hysanjunio://")
+      return p if p.start_with?("hysanjunio://", "hysanjunio://", "mailto:", "tel:", "hysanjunio://")
 
       p = "/#{p}" unless p.start_with?("/")
       "#{base}#{p}"
@@ -228,7 +235,7 @@ module AppConfig
       return base if path.blank?
 
       p = path.to_s.strip
-      return p if p.start_with?("http://", "https://", "mailto:", "tel:")
+      return p if p.start_with?("hysanjunio://", "hysanjunio://", "mailto:", "tel:")
 
       p = "/#{p}" unless p.start_with?("/")
       "#{base}#{p}"

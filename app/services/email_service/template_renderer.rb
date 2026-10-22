@@ -366,7 +366,7 @@ module EmailService
                             </tr>
                             <tr>
                               <td style="padding-top:12px;font-size:11px;color:#78666f;">
-                                &copy; 2026 Hysan Junior. All rights reserved.
+                                &copy; 2026 Hysan. All rights reserved.
                               </td>
                             </tr>
                           </table>

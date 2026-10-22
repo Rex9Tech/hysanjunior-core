@@ -49,11 +49,11 @@ Teams routinely burn $150,000–$300,000 in runway reinventing password resets, 
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### The RexOne Difference: Day-One Sovereign Reality
+### The RexOne Difference: Day-One Production Reality
 RexOne delivers this entire tri-platform foundation on **Day One**:
 - **1,785+ Automated Tests** (1,071 RSpec + 372 Vitest + 342 Flutter) guaranteeing unbreakable architectural integrity.
 - **Strict Constitutional Law (`LAW.md`)** enforcing pure parameter contracts, plain English, and zero dead code.
-- **Sovereign & Self-Hostable**: PostgreSQL 18, self-hosted Garage S3, native Solid Queue. Zero vendor hostage bills.
+- **Self-Hostable & Free**: PostgreSQL 18, self-hosted Garage S3, native Solid Queue. Zero vendor hostage bills.
 
 **Your time to launch drops from 9 months to 2–3 weeks.**
 
@@ -1211,7 +1211,7 @@ The UI architecture is strictly decoupled from business contracts:
    ./scripts/rebrand.sh brand.config.json
    ```
 
-   This script reads the master `brand.config.json` (app name, organization, domain, database names, bundle identifiers, email sender identity, repository URLs) and safely synchronizes the brand identity across `rexone-core`, `rexone-web`, and `rexone-mobile` simultaneously. (Note: Landing modules and foundation SEO/GEO discovery assets are intentionally excluded from automation to preserve RexOne's foundation identity and leave product-specific SEO in the hands of the developer).
+   This script reads `brand.config.json` (app name, company, domain, database names, bundle identifiers, email sender identity) and safely synchronizes brand identity across `rexone-core`, `rexone-web`, and `rexone_mobile` simultaneously. See **[Ecosystem Rebranding Guide](REBRANDING.md)** for the complete guide. (Note: Landing modules and foundation SEO/GEO discovery assets are intentionally excluded from automation to preserve RexOne's foundation identity and leave product-specific SEO in the hands of the developer).
 
 2. **Web Design System (`rexone-web/src/design`)**:
    All UI elements, widgets, dialogs, typography, and theme tokens live under `src/design/`:

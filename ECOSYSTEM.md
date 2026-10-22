@@ -1,12 +1,12 @@
-# 🏛️ The RexOne Ecosystem
+# 🏛️ The RexOne Architecture Foundation: Unified Ecosystem Specification
 
-A unified architectural specification and cross-platform contract spanning **RexOne Core** (Rails), **RexOne Web** (React), and **RexOne Mobile** (Flutter).
+A unified architectural specification and cross-platform contract spanning **RexOne Core** (Rails API), **RexOne Web** (React SPA), and **RexOne Mobile** (Flutter Native).
 
 ---
 
 ## 📜 Architectural Baseline
 
-RexOne establishes a disciplined, production-grade foundation for modern digital products:
+RexOne establishes the **RexOne Architecture Foundation**—a disciplined, production-grade tri-platform standard for modern digital products:
 
 - **Identity & IAM**: Passwordless/passcode auth, Google SSO, granular role-based access control.
 - **Commerce & Subscriptions**: Stripe Checkout, recurring billing, coupon redemptions, access entitlement ledger.
@@ -440,7 +440,7 @@ Permissions follow a clean administrative model:
 - **Response Flags**:
   - `update_required`: `true` when client version is strictly behind the live published version (triggers non-blocking update prompt).
   - `must_update`: `true` when the live version is flagged as force update and is newer than the client (triggers mandatory blocking modal).
-  - `skip_premium`: `true` when client version is strictly newer than the live published version (e.g. app store review builds).
+  - `skip_premium`: `true` when no live version is published yet in the catalog (initial app store review dark launch) or when client version is strictly newer than the live published version (app store review builds).
   - `store_url`: Platform store URL configured via `IOS_STORE_URL` or `ANDROID_STORE_URL`.
 - **Client Handling**:
   - Mobile: When `must_update` is true, `SplashPage` presents an un-bypassable `PopScope(canPop: false)` blocking screen. Optional updates (`update_required: true && !must_update`) prompt on `HomePage` via `AppDialog.update(...)`. `VersionModel.fromJson` and `ApiService#parseRecord` seamlessly resolve both JSON:API attributes envelopes and flat key structures.
@@ -730,30 +730,33 @@ A unified, tamper-proof protocol across Web and Mobile that preserves user navig
 
 ### 10. Single-Command Multi-Platform Rebrand Engine Specification
 
-RexOne includes a sovereign, zero-friction rebranding engine executed via a single master command from `rexone-core`:
+RexOne includes a built-in, zero-friction rebranding engine executed via a single master command from `rexone-core`:
 
 ```bash
 # Full ecosystem synchronization (Core API, Web SPA, and Mobile Flutter simultaneously):
-./scripts/rebrand.sh "Acme Product" "com.acme.product" "path/to/logo.png" [BrandName] [domain.com]
+./scripts/rebrand.sh brand.config.json
 ```
+
+For the comprehensive guide and operational matrix, see **[docs/REBRANDING.md](docs/REBRANDING.md)**.
 
 #### Deterministic Cross-Repository Parameter Contracts (Law U14):
 1. **RexOne Core (Rails API)**:
    - Synchronizes `config/app_config.rb` default parameters (`RAILS_JWT_SECRET_KEY`, `SMTP_DOMAIN`, `FROM_EMAIL`, `S3_BUCKET`).
-   - Updates `docker-compose.yaml` (Production / Coolify) and `docker-compose.dev.yaml` with kebab-case container slugs (`prod-acme-api`, `prod-acme-waka`, `prod-acme-media`, `prod-acme-db`, `acme-garage`).
-   - Synchronizes PostgreSQL database names (`acme_production`, `acme_development`) and Garage S3 bucket names (`acme`).
+   - Updates `docker-compose.yaml` (Production / Coolify) and `docker-compose.dev.yaml` with kebab-case container slugs (`prod-<kebab>-api`, `prod-<kebab>-waka`, `prod-<kebab>-media`, `prod-<kebab>-db`, `<kebab>-garage`).
+   - Synchronizes PostgreSQL database names (`<snake>_production`, `<snake>_development`) and Garage S3 bucket names (`<kebab>`).
    - Updates database backup scripts (`backup_db.sh`, `backup_garage.sh`, `dev_garage.sh`, `prod_garage_init.sh`).
    - Updates checked-in `.env.example` templates with matching parameter examples.
 2. **RexOne Web (React SPA)**:
-   - Synchronizes `package.json` package name and HTML application titles.
+   - Synchronizes `package.json` package name (`<kebab>-web`) and HTML application titles.
    - Synchronizes branding locales (`src/locales/en.json`, `src/locales/my.json`).
    - Updates public brand assets (`public/brand/logo.png`, `public/favicon.png`) and image alt tokens (`src/assets/index.ts`).
    - Synchronizes `scripts/uat.sh` and `scripts/prod.sh` target API hostnames (`https://api.domain.com`, `https://uat.api.domain.com`).
    - Synchronizes checked-in `.env.example` templates.
 3. **RexOne Mobile (Flutter Client)**:
    - Updates application display names dynamically in Android (`AndroidManifest.xml` via `appName`) and iOS (`Info.plist` via `CFBundleDisplayName`).
-   - Synchronizes native application ID and iOS bundle ID (`com.acme.product` and `com.acme.product.uat`).
-   - Synchronizes release keystore filenames (`acme-upload-keystore.jks`) in `build.gradle.kts`.
+   - Synchronizes native application ID and iOS bundle ID (`com.brand.app` and `com.brand.app.uat`).
+   - Synchronizes release keystore filenames (`<flat>-upload-keystore.jks`) in `build.gradle.kts`.
+   - Synchronizes Dart `pubspec.yaml` package name and updates **all package imports** across `lib/`, `test/`, and `integration_test/`.
    - Synchronizes parameter contracts inside `./scripts/release_android.sh`, `./scripts/release_ios.sh`, and `.github/workflows/build_android.yaml`.
    - Generates native launcher icons across all screen densities from source logo via `flutter_launcher_icons`.
 4. **Secret Isolation Protocol (Rule 5 & Law U16)**:
