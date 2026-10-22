@@ -20,5 +20,5 @@ root_domain = ".s3.garage.localhost"
 
 [admin]
 api_bind_addr = "[::]:3101"
-admin_token = "rexone_garage_admin_token_secret_key_12345"
-metrics_token = "rexone_garage_metrics_token_secret_key_12345"
+admin_token = "hysanjunio_garage_admin_token_secret_key_12345"
+metrics_token = "hysanjunio_garage_metrics_token_secret_key_12345"

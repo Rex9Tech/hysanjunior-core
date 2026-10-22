@@ -3,8 +3,11 @@
 # app/constants/seed_constants.rb
 module SeedConstants
   module RoleDescriptions
-    SUPER_ADMIN = "Full system access".freeze
-    ADMIN       = "Admin with limited role management".freeze
-    USER        = "Default user role for all registered users".freeze
+    SUPER_ADMIN   = "Full system access".freeze
+    ADMIN         = "Admin with limited role management".freeze
+    USER          = "Default user role for all registered users".freeze
+    STUDENT       = "Learner enrolled in a school class".freeze
+    PARENT        = "Guardian linked to one or more students".freeze
+    TEACHER_ADMIN = "Teacher attached to a campus".freeze
   end
 end

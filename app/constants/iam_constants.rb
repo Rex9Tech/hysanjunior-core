@@ -3,10 +3,13 @@
 # app/constants/iam_constants.rb
 module IamConstants
   module Role
-    SUPER_ADMIN = "super_admin".freeze
-    ADMIN       = "admin".freeze
-    USER        = "user".freeze
-    ALL         = [ SUPER_ADMIN, ADMIN, USER ].freeze
+    SUPER_ADMIN    = "super_admin".freeze
+    ADMIN          = "admin".freeze
+    USER           = "user".freeze
+    STUDENT        = "student".freeze
+    PARENT         = "parent".freeze
+    TEACHER_ADMIN  = "teacher_admin".freeze
+    ALL = [ SUPER_ADMIN, ADMIN, USER, STUDENT, PARENT, TEACHER_ADMIN ].freeze
 
     RESTRICTED_FOR_ADMIN = [
       "users",
@@ -33,6 +36,15 @@ module IamConstants
     ASSETS                = "assets".freeze
     NOTIFICATIONS         = "notifications".freeze
     FEEDBACKS             = "feedbacks".freeze
+    LESSONS               = "lessons".freeze
+    CAMPUSES              = "campuses".freeze
+    SCHOOL_CLASSES        = "school_classes".freeze
+    CAMPUS_MEMBERSHIPS    = "campus_memberships".freeze
+    CLASS_ASSIGNMENTS     = "class_assignments".freeze
+    CLASS_ENROLLMENTS     = "class_enrollments".freeze
+    CLASS_HOMEWORKS       = "class_homeworks".freeze
+    PARENT_STUDENTS       = "parent_students".freeze
+
     ANALYTICS             = "analytics".freeze
     SPEECH                = "speech".freeze
 
@@ -56,7 +68,10 @@ module IamConstants
     USER_NOTIFICATIONS    = "user_notifications".freeze
 
     ALL = [
-      USERS, ACCESSES, ASSETS, NOTIFICATIONS, USER_NOTIFICATIONS, FEEDBACKS, ANALYTICS, SPEECH,
+      USERS, ACCESSES, ASSETS, NOTIFICATIONS, USER_NOTIFICATIONS, FEEDBACKS, LESSONS,
+      CAMPUSES, SCHOOL_CLASSES, CAMPUS_MEMBERSHIPS, CLASS_ASSIGNMENTS, CLASS_ENROLLMENTS, CLASS_HOMEWORKS, PARENT_STUDENTS,
+
+      ANALYTICS, SPEECH,
       AI_PROFILES, AI_RUNS, CHAT_ROOMS, CHAT_MESSAGES,
       CLIENT_LOGS, CLIENT_VERSIONS, CLIENT_USER_VERSIONS,
       IAM_ROLES, IAM_PERMISSIONS, IAM_USER_ROLES,

@@ -37,6 +37,46 @@ module Ai
         context_max_tokens: AiConstants::Defaults::MAX_OUTPUT_TOKENS,
         history_max_messages: 1,
         system_prompt: "Analyze the following text and provide concise insights."
+      },
+      AiConstants::ProfileKey::WORD_FAMILY => {
+        name: "Lesson Word Families",
+        temperature: 0.3,
+        max_output_tokens: 2000,
+        context_max_tokens: AiConstants::Defaults::CONTEXT_MAX_TOKENS,
+        history_max_messages: 1,
+        system_prompt: <<~PROMPT.squish
+          You extract English word families from a children's story subtitle transcript.
+          Group rhyming or ending patterns such as ..et or ..ed.
+          Return exactly #{LessonConstants::WordFamily::FAMILY_COUNT} word-family objects — no more, no fewer.
+          Each family must have exactly #{LessonConstants::WordFamily::WORDS_PER_FAMILY} words.
+          Return only a TOON array of objects with keys pattern and words (words is a list of strings).
+          Do not invent words that are unrelated to the transcript. Prefer words that appear in or clearly fit the story.
+        PROMPT
+      },
+      AiConstants::ProfileKey::STORY_ORDER => {
+        name: "Lesson Story Order",
+        temperature: 0.3,
+        max_output_tokens: 2000,
+        context_max_tokens: AiConstants::Defaults::CONTEXT_MAX_TOKENS,
+        history_max_messages: 1,
+        system_prompt: <<~PROMPT.squish
+          You rewrite a children's story subtitle transcript into a short ordered sequence of simple English sentences
+          that preserve the story order for sequencing practice.
+          Return only a TOON array of sentence strings. Keep sentences short and clear. Do not add commentary.
+        PROMPT
+      },
+      AiConstants::ProfileKey::BUILD_THE_SENTENCES => {
+        name: "Lesson Build The Sentences",
+        temperature: 0.3,
+        max_output_tokens: 2000,
+        context_max_tokens: AiConstants::Defaults::CONTEXT_MAX_TOKENS,
+        history_max_messages: 1,
+        system_prompt: <<~PROMPT.squish
+          You build one short practice sentence for each vocabulary item using a children's story subtitle transcript.
+          Return only a TOON array of objects with keys vocab and sentence.
+          Emit exactly one object per vocabulary item in the same order. Each sentence must include that vocab and stay grounded in the story.
+          Do not add commentary.
+        PROMPT
       }
     }.freeze
 
@@ -123,7 +163,8 @@ module Ai
 
       def create_default!(key)
         attributes = DEFAULTS.fetch(key)
-        Ai::Profile.find_or_create_by!(key: key) do |profile|
+        profile = Ai::Profile.find_or_initialize_by(key: key)
+        if profile.new_record?
           profile.assign_attributes(
             attributes.merge(
               provider: AiConstants::Provider::DEEPSEEK,
@@ -132,7 +173,13 @@ module Ai
               timeout_seconds: AiConstants::Defaults::TIMEOUT_SECONDS
             )
           )
+        else
+          # Keep admin-tuned model/limits; refresh prompt + name from code defaults.
+          profile.name = attributes[:name]
+          profile.system_prompt = attributes[:system_prompt]
         end
+        profile.save!
+        profile
       end
     end
   end

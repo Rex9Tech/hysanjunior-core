@@ -49,7 +49,7 @@ module SpeechConstants
     AZURE_PATH = "/cognitiveservices/v1".freeze
     AZURE_OUTPUT_FORMAT = "audio-16khz-128kbitrate-mono-mp3".freeze
     AZURE_SSML_CONTENT_TYPE = "application/ssml+xml".freeze
-    AZURE_USER_AGENT = "rexone-core".freeze
+    AZURE_USER_AGENT = "hysanjunio-core".freeze
     HEADER_OUTPUT_FORMAT = "X-Microsoft-OutputFormat".freeze
     HEADER_USER_AGENT = "User-Agent".freeze
   end

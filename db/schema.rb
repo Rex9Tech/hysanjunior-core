@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "uuid-ossp"
@@ -143,6 +143,53 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.index ["url"], name: "index_assets_on_url", unique: true
   end
 
+  create_table "campus_memberships", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "campus_id", null: false
+    t.uuid "user_id", null: false
+    t.string "kind", default: "teacher_admin", null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["campus_id", "user_id"], name: "index_campus_memberships_on_campus_user_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["campus_id"], name: "index_campus_memberships_on_campus_id"
+    t.index ["created_by_id"], name: "index_campus_memberships_on_created_by_id"
+    t.index ["discarded_at"], name: "index_campus_memberships_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_campus_memberships_on_discarded_by_id"
+    t.index ["kind"], name: "index_campus_memberships_on_kind"
+    t.index ["undiscarded_by_id"], name: "index_campus_memberships_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_campus_memberships_on_updated_by_id"
+    t.index ["user_id"], name: "index_campus_memberships_on_user_id"
+  end
+
+  create_table "campuses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "code"
+    t.string "status", default: "active", null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "phone"
+    t.text "location"
+    t.index ["code"], name: "index_campuses_on_code", unique: true, where: "((code IS NOT NULL) AND (discarded_at IS NULL))"
+    t.index ["created_by_id"], name: "index_campuses_on_created_by_id"
+    t.index ["discarded_at"], name: "index_campuses_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_campuses_on_discarded_by_id"
+    t.index ["name"], name: "index_campuses_on_name"
+    t.index ["status"], name: "index_campuses_on_status"
+    t.index ["undiscarded_by_id"], name: "index_campuses_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_campuses_on_updated_by_id"
+  end
+
   create_table "chat_messages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "room_id", null: false
     t.string "role", null: false
@@ -186,6 +233,79 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.index ["updated_by_id"], name: "index_chat_rooms_on_updated_by_id"
     t.index ["user_id", "created_at"], name: "index_chat_rooms_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_chat_rooms_on_user_id"
+  end
+
+  create_table "class_assignments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "school_class_id", null: false
+    t.uuid "user_id", null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_class_assignments_on_created_by_id"
+    t.index ["discarded_at"], name: "index_class_assignments_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_class_assignments_on_discarded_by_id"
+    t.index ["school_class_id", "user_id"], name: "index_class_assignments_on_class_user_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_class_id"], name: "index_class_assignments_on_school_class_id"
+    t.index ["undiscarded_by_id"], name: "index_class_assignments_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_class_assignments_on_updated_by_id"
+    t.index ["user_id"], name: "index_class_assignments_on_user_id"
+  end
+
+  create_table "class_enrollments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "school_class_id", null: false
+    t.uuid "user_id", null: false
+    t.string "status", default: "active", null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_class_enrollments_on_created_by_id"
+    t.index ["discarded_at"], name: "index_class_enrollments_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_class_enrollments_on_discarded_by_id"
+    t.index ["school_class_id", "user_id"], name: "index_class_enrollments_on_class_user_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_class_id"], name: "index_class_enrollments_on_school_class_id"
+    t.index ["status"], name: "index_class_enrollments_on_status"
+    t.index ["undiscarded_by_id"], name: "index_class_enrollments_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_class_enrollments_on_updated_by_id"
+    t.index ["user_id"], name: "index_class_enrollments_on_user_id"
+    t.index ["user_id"], name: "index_class_enrollments_one_active_per_student", unique: true, where: "(((status)::text = 'active'::text) AND (discarded_at IS NULL))"
+  end
+
+  create_table "class_homeworks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "school_class_id", null: false
+    t.uuid "lesson_id", null: false
+    t.jsonb "activity_keys", default: [], null: false
+    t.boolean "play_song_at_first", default: false, null: false
+    t.boolean "play_story_at_first", default: false, null: false
+    t.string "title"
+    t.date "due_on"
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["activity_keys"], name: "index_class_homeworks_on_activity_keys", using: :gin
+    t.index ["created_by_id"], name: "index_class_homeworks_on_created_by_id"
+    t.index ["discarded_at"], name: "index_class_homeworks_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_class_homeworks_on_discarded_by_id"
+    t.index ["due_on"], name: "index_class_homeworks_on_due_on"
+    t.index ["lesson_id"], name: "index_class_homeworks_on_lesson_id"
+    t.index ["school_class_id", "created_at"], name: "index_class_homeworks_on_school_class_id_and_created_at"
+    t.index ["school_class_id"], name: "index_class_homeworks_on_school_class_id"
+    t.index ["undiscarded_by_id"], name: "index_class_homeworks_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_class_homeworks_on_updated_by_id"
   end
 
   create_table "client_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -256,7 +376,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.index ["number"], name: "index_client_user_versions_on_number"
     t.index ["undiscarded_by_id"], name: "index_client_user_versions_on_undiscarded_by_id"
     t.index ["updated_by_id"], name: "index_client_user_versions_on_updated_by_id"
-    t.index ["user_id", "platform"], name: "index_client_user_versions_on_user_id_and_platform_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["user_id", "platform"], name: "index_client_user_versions_on_user_id_and_platform", unique: true
     t.index ["user_id"], name: "index_client_user_versions_on_user_id"
     t.index ["version_id"], name: "index_client_user_versions_on_version_id"
   end
@@ -279,14 +399,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.datetime "undiscarded_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["android_build_number"], name: "index_client_versions_on_android_build_number_kept", unique: true, where: "((discarded_at IS NULL) AND (android_build_number IS NOT NULL))"
+    t.index ["android_build_number"], name: "index_client_versions_on_android_build_number", unique: true
     t.index ["created_by_id"], name: "index_client_versions_on_created_by_id"
     t.index ["discarded_at"], name: "index_client_versions_on_discarded_at"
     t.index ["discarded_by_id"], name: "index_client_versions_on_discarded_by_id"
-    t.index ["ios_build_number"], name: "index_client_versions_on_ios_build_number_kept", unique: true, where: "((discarded_at IS NULL) AND (ios_build_number IS NOT NULL))"
-    t.index ["number"], name: "index_client_versions_on_number_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["ios_build_number"], name: "index_client_versions_on_ios_build_number", unique: true
+    t.index ["number"], name: "index_client_versions_on_number", unique: true
     t.index ["released_at"], name: "index_client_versions_on_released_at"
-    t.index ["status"], name: "index_client_versions_on_one_published_kept", unique: true, where: "(((status)::text = 'published'::text) AND (discarded_at IS NULL))"
     t.index ["status"], name: "index_client_versions_on_status"
     t.index ["undiscarded_by_id"], name: "index_client_versions_on_undiscarded_by_id"
     t.index ["updated_by_id"], name: "index_client_versions_on_updated_by_id"
@@ -454,6 +573,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.index ["user_id"], name: "index_iam_user_roles_on_user_id"
   end
 
+  create_table "lessons", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "title", null: false
+    t.integer "level", null: false
+    t.string "unit", null: false
+    t.string "status", default: "draft", null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.jsonb "story_order", default: [], null: false
+    t.jsonb "build_the_sentences", default: [], null: false
+    t.index ["created_by_id"], name: "index_lessons_on_created_by_id"
+    t.index ["discarded_at"], name: "index_lessons_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_lessons_on_discarded_by_id"
+    t.index ["level", "unit"], name: "index_lessons_on_level_and_unit"
+    t.index ["level"], name: "index_lessons_on_level"
+    t.index ["status"], name: "index_lessons_on_status"
+    t.index ["title"], name: "index_lessons_on_title"
+    t.index ["undiscarded_by_id"], name: "index_lessons_on_undiscarded_by_id"
+    t.index ["unit"], name: "index_lessons_on_unit"
+    t.index ["updated_by_id"], name: "index_lessons_on_updated_by_id"
+  end
+
   create_table "notifications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "event", null: false
     t.string "name", null: false
@@ -491,6 +637,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.index ["event"], name: "index_notifications_on_event"
     t.index ["undiscarded_by_id"], name: "index_notifications_on_undiscarded_by_id"
     t.index ["updated_by_id"], name: "index_notifications_on_updated_by_id"
+  end
+
+  create_table "parent_students", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "parent_id", null: false
+    t.uuid "student_id", null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_parent_students_on_created_by_id"
+    t.index ["discarded_at"], name: "index_parent_students_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_parent_students_on_discarded_by_id"
+    t.index ["parent_id", "student_id"], name: "index_parent_students_on_parent_student_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["parent_id"], name: "index_parent_students_on_parent_id"
+    t.index ["student_id"], name: "index_parent_students_on_student_id"
+    t.index ["undiscarded_by_id"], name: "index_parent_students_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_parent_students_on_updated_by_id"
   end
 
   create_table "payment_products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -649,6 +816,54 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.index ["status"], name: "index_payment_webhook_events_on_status"
     t.index ["undiscarded_by_id"], name: "index_payment_webhook_events_on_undiscarded_by_id"
     t.index ["updated_by_id"], name: "index_payment_webhook_events_on_updated_by_id"
+  end
+
+  create_table "question_options", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "question_id", null: false
+    t.string "text", null: false
+    t.boolean "correct", default: false, null: false
+    t.integer "position", default: 0, null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_question_options_on_created_by_id"
+    t.index ["discarded_at"], name: "index_question_options_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_question_options_on_discarded_by_id"
+    t.index ["position"], name: "index_question_options_on_position"
+    t.index ["question_id", "position"], name: "index_question_options_on_question_id_and_position"
+    t.index ["question_id"], name: "index_question_options_on_question_id"
+    t.index ["undiscarded_by_id"], name: "index_question_options_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_question_options_on_updated_by_id"
+  end
+
+  create_table "questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "questionable_type", null: false
+    t.uuid "questionable_id", null: false
+    t.string "kind", default: "multiple_choice", null: false
+    t.string "title", null: false
+    t.integer "position", default: 0, null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_questions_on_created_by_id"
+    t.index ["discarded_at"], name: "index_questions_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_questions_on_discarded_by_id"
+    t.index ["kind"], name: "index_questions_on_kind"
+    t.index ["position"], name: "index_questions_on_position"
+    t.index ["questionable_type", "questionable_id", "position"], name: "index_questions_on_questionable_and_position"
+    t.index ["questionable_type", "questionable_id"], name: "index_questions_on_questionable"
+    t.index ["undiscarded_by_id"], name: "index_questions_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_questions_on_updated_by_id"
   end
 
   create_table "rails_error_dashboard_applications", force: :cascade do |t|
@@ -1021,6 +1236,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.index ["summarizable_type", "summarizable_id"], name: "index_rails_pulse_summaries_on_summarizable"
   end
 
+  create_table "school_classes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "campus_id", null: false
+    t.string "name", null: false
+    t.integer "level", null: false
+    t.string "status", default: "active", null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["campus_id", "level", "name"], name: "index_school_classes_on_campus_level_name_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["campus_id"], name: "index_school_classes_on_campus_id"
+    t.index ["created_by_id"], name: "index_school_classes_on_created_by_id"
+    t.index ["discarded_at"], name: "index_school_classes_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_school_classes_on_discarded_by_id"
+    t.index ["level"], name: "index_school_classes_on_level"
+    t.index ["name"], name: "index_school_classes_on_name"
+    t.index ["status"], name: "index_school_classes_on_status"
+    t.index ["undiscarded_by_id"], name: "index_school_classes_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_school_classes_on_updated_by_id"
+  end
+
   create_table "solid_cable_messages", force: :cascade do |t|
     t.binary "channel", null: false
     t.binary "payload", null: false
@@ -1192,6 +1432,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
+  create_table "sort_health_choices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "lesson_id", null: false
+    t.string "label", null: false
+    t.integer "position", default: 0, null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_sort_health_choices_on_created_by_id"
+    t.index ["discarded_at"], name: "index_sort_health_choices_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_sort_health_choices_on_discarded_by_id"
+    t.index ["lesson_id", "position"], name: "index_sort_health_choices_on_lesson_id_and_position"
+    t.index ["lesson_id"], name: "index_sort_health_choices_on_lesson_id"
+    t.index ["position"], name: "index_sort_health_choices_on_position"
+    t.index ["undiscarded_by_id"], name: "index_sort_health_choices_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_sort_health_choices_on_updated_by_id"
+  end
+
   create_table "user_coupons", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "coupon_id", null: false
     t.uuid "user_id", null: false
@@ -1250,7 +1512,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.index ["undiscarded_by_id"], name: "index_user_notifications_on_undiscarded_by_id"
     t.index ["updated_by_id"], name: "index_user_notifications_on_updated_by_id"
     t.index ["user_id", "created_at"], name: "index_user_notifications_on_user_id_and_created_at"
-    t.index ["user_id", "operation_id"], name: "index_user_notifications_on_user_id_and_operation_id", unique: true, where: "(operation_id IS NOT NULL)"
+    t.index ["user_id", "operation_id"], name: "index_user_notifications_on_user_id_and_operation_id"
     t.index ["user_id", "read_at"], name: "index_user_notifications_on_user_id_and_read_at"
     t.index ["user_id"], name: "index_user_notifications_on_user_id"
   end
@@ -1300,6 +1562,54 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+  create_table "vocabularies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "lesson_id", null: false
+    t.string "vocab", null: false
+    t.string "vowel_symbol"
+    t.integer "position", default: 0, null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "sort_health_choice_id"
+    t.index ["created_by_id"], name: "index_vocabularies_on_created_by_id"
+    t.index ["discarded_at"], name: "index_vocabularies_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_vocabularies_on_discarded_by_id"
+    t.index ["lesson_id", "position"], name: "index_vocabularies_on_lesson_id_and_position"
+    t.index ["lesson_id"], name: "index_vocabularies_on_lesson_id"
+    t.index ["position"], name: "index_vocabularies_on_position"
+    t.index ["sort_health_choice_id"], name: "index_vocabularies_on_sort_health_choice_id"
+    t.index ["undiscarded_by_id"], name: "index_vocabularies_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_vocabularies_on_updated_by_id"
+  end
+
+  create_table "word_families", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "lesson_id", null: false
+    t.string "pattern", null: false
+    t.jsonb "words", default: [], null: false
+    t.integer "position", default: 0, null: false
+    t.uuid "created_by_id"
+    t.uuid "updated_by_id"
+    t.uuid "discarded_by_id"
+    t.uuid "undiscarded_by_id"
+    t.datetime "discarded_at"
+    t.datetime "undiscarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_word_families_on_created_by_id"
+    t.index ["discarded_at"], name: "index_word_families_on_discarded_at"
+    t.index ["discarded_by_id"], name: "index_word_families_on_discarded_by_id"
+    t.index ["lesson_id", "position"], name: "index_word_families_on_lesson_id_and_position"
+    t.index ["lesson_id"], name: "index_word_families_on_lesson_id"
+    t.index ["position"], name: "index_word_families_on_position"
+    t.index ["undiscarded_by_id"], name: "index_word_families_on_undiscarded_by_id"
+    t.index ["updated_by_id"], name: "index_word_families_on_updated_by_id"
+  end
+
   add_foreign_key "accesses", "payment_products", column: "product_id"
   add_foreign_key "accesses", "users"
   add_foreign_key "accesses", "users", column: "created_by_id"
@@ -1322,6 +1632,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
   add_foreign_key "assets", "users", column: "discarded_by_id"
   add_foreign_key "assets", "users", column: "undiscarded_by_id"
   add_foreign_key "assets", "users", column: "updated_by_id"
+  add_foreign_key "campus_memberships", "campuses"
+  add_foreign_key "campus_memberships", "users"
+  add_foreign_key "campus_memberships", "users", column: "created_by_id"
+  add_foreign_key "campus_memberships", "users", column: "discarded_by_id"
+  add_foreign_key "campus_memberships", "users", column: "undiscarded_by_id"
+  add_foreign_key "campus_memberships", "users", column: "updated_by_id"
+  add_foreign_key "campuses", "users", column: "created_by_id"
+  add_foreign_key "campuses", "users", column: "discarded_by_id"
+  add_foreign_key "campuses", "users", column: "undiscarded_by_id"
+  add_foreign_key "campuses", "users", column: "updated_by_id"
   add_foreign_key "chat_messages", "ai_profiles"
   add_foreign_key "chat_messages", "chat_rooms", column: "room_id"
   add_foreign_key "chat_messages", "users", column: "created_by_id"
@@ -1333,6 +1653,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
   add_foreign_key "chat_rooms", "users", column: "discarded_by_id"
   add_foreign_key "chat_rooms", "users", column: "undiscarded_by_id"
   add_foreign_key "chat_rooms", "users", column: "updated_by_id"
+  add_foreign_key "class_assignments", "school_classes"
+  add_foreign_key "class_assignments", "users"
+  add_foreign_key "class_assignments", "users", column: "created_by_id"
+  add_foreign_key "class_assignments", "users", column: "discarded_by_id"
+  add_foreign_key "class_assignments", "users", column: "undiscarded_by_id"
+  add_foreign_key "class_assignments", "users", column: "updated_by_id"
+  add_foreign_key "class_enrollments", "school_classes"
+  add_foreign_key "class_enrollments", "users"
+  add_foreign_key "class_enrollments", "users", column: "created_by_id"
+  add_foreign_key "class_enrollments", "users", column: "discarded_by_id"
+  add_foreign_key "class_enrollments", "users", column: "undiscarded_by_id"
+  add_foreign_key "class_enrollments", "users", column: "updated_by_id"
+  add_foreign_key "class_homeworks", "lessons"
+  add_foreign_key "class_homeworks", "school_classes"
+  add_foreign_key "class_homeworks", "users", column: "created_by_id"
+  add_foreign_key "class_homeworks", "users", column: "discarded_by_id"
+  add_foreign_key "class_homeworks", "users", column: "undiscarded_by_id"
+  add_foreign_key "class_homeworks", "users", column: "updated_by_id"
   add_foreign_key "client_logs", "client_versions", column: "version_id", on_delete: :nullify
   add_foreign_key "client_logs", "users"
   add_foreign_key "client_logs", "users", column: "created_by_id"
@@ -1375,10 +1713,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
   add_foreign_key "iam_user_roles", "users", column: "discarded_by_id"
   add_foreign_key "iam_user_roles", "users", column: "undiscarded_by_id"
   add_foreign_key "iam_user_roles", "users", column: "updated_by_id"
+  add_foreign_key "lessons", "users", column: "created_by_id"
+  add_foreign_key "lessons", "users", column: "discarded_by_id"
+  add_foreign_key "lessons", "users", column: "undiscarded_by_id"
+  add_foreign_key "lessons", "users", column: "updated_by_id"
   add_foreign_key "notifications", "users", column: "created_by_id"
   add_foreign_key "notifications", "users", column: "discarded_by_id"
   add_foreign_key "notifications", "users", column: "undiscarded_by_id"
   add_foreign_key "notifications", "users", column: "updated_by_id"
+  add_foreign_key "parent_students", "users", column: "created_by_id"
+  add_foreign_key "parent_students", "users", column: "discarded_by_id"
+  add_foreign_key "parent_students", "users", column: "parent_id"
+  add_foreign_key "parent_students", "users", column: "student_id"
+  add_foreign_key "parent_students", "users", column: "undiscarded_by_id"
+  add_foreign_key "parent_students", "users", column: "updated_by_id"
   add_foreign_key "payment_products", "users", column: "created_by_id"
   add_foreign_key "payment_products", "users", column: "discarded_by_id"
   add_foreign_key "payment_products", "users", column: "undiscarded_by_id"
@@ -1399,6 +1747,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
   add_foreign_key "payment_webhook_events", "users", column: "discarded_by_id"
   add_foreign_key "payment_webhook_events", "users", column: "undiscarded_by_id"
   add_foreign_key "payment_webhook_events", "users", column: "updated_by_id"
+  add_foreign_key "question_options", "questions"
+  add_foreign_key "question_options", "users", column: "created_by_id"
+  add_foreign_key "question_options", "users", column: "discarded_by_id"
+  add_foreign_key "question_options", "users", column: "undiscarded_by_id"
+  add_foreign_key "question_options", "users", column: "updated_by_id"
+  add_foreign_key "questions", "users", column: "created_by_id"
+  add_foreign_key "questions", "users", column: "discarded_by_id"
+  add_foreign_key "questions", "users", column: "undiscarded_by_id"
+  add_foreign_key "questions", "users", column: "updated_by_id"
   add_foreign_key "rails_error_dashboard_cascade_patterns", "rails_error_dashboard_error_logs", column: "child_error_id"
   add_foreign_key "rails_error_dashboard_cascade_patterns", "rails_error_dashboard_error_logs", column: "parent_error_id"
   add_foreign_key "rails_error_dashboard_diagnostic_dumps", "rails_error_dashboard_applications", column: "application_id"
@@ -1410,6 +1767,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
   add_foreign_key "rails_pulse_operations", "rails_pulse_queries", column: "query_id"
   add_foreign_key "rails_pulse_operations", "rails_pulse_requests", column: "request_id"
   add_foreign_key "rails_pulse_requests", "rails_pulse_routes", column: "route_id"
+  add_foreign_key "school_classes", "campuses"
+  add_foreign_key "school_classes", "users", column: "created_by_id"
+  add_foreign_key "school_classes", "users", column: "discarded_by_id"
+  add_foreign_key "school_classes", "users", column: "undiscarded_by_id"
+  add_foreign_key "school_classes", "users", column: "updated_by_id"
   add_foreign_key "solid_queue_batch_executions", "solid_queue_batches", column: "batch_id", on_delete: :cascade
   add_foreign_key "solid_queue_batch_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
@@ -1418,6 +1780,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "sort_health_choices", "lessons"
+  add_foreign_key "sort_health_choices", "users", column: "created_by_id"
+  add_foreign_key "sort_health_choices", "users", column: "discarded_by_id"
+  add_foreign_key "sort_health_choices", "users", column: "undiscarded_by_id"
+  add_foreign_key "sort_health_choices", "users", column: "updated_by_id"
   add_foreign_key "user_coupons", "coupons"
   add_foreign_key "user_coupons", "payment_products", column: "product_id"
   add_foreign_key "user_coupons", "users"
@@ -1435,4 +1802,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_173001) do
   add_foreign_key "users", "users", column: "discarded_by_id"
   add_foreign_key "users", "users", column: "undiscarded_by_id"
   add_foreign_key "users", "users", column: "updated_by_id"
+  add_foreign_key "vocabularies", "lessons"
+  add_foreign_key "vocabularies", "sort_health_choices"
+  add_foreign_key "vocabularies", "users", column: "created_by_id"
+  add_foreign_key "vocabularies", "users", column: "discarded_by_id"
+  add_foreign_key "vocabularies", "users", column: "undiscarded_by_id"
+  add_foreign_key "vocabularies", "users", column: "updated_by_id"
+  add_foreign_key "word_families", "lessons"
+  add_foreign_key "word_families", "users", column: "created_by_id"
+  add_foreign_key "word_families", "users", column: "discarded_by_id"
+  add_foreign_key "word_families", "users", column: "undiscarded_by_id"
+  add_foreign_key "word_families", "users", column: "updated_by_id"
 end

@@ -38,7 +38,7 @@ RSpec.describe SpeechService::AzureSpeech do
     session = start_session
 
     expect(socket.frames.first).to include("Path: speech.config")
-    expect(socket.frames.first).to include("rexone-core")
+    expect(socket.frames.first).to include("hysanjunio-core")
     expect(socket.frames.first).not_to include("X-RequestId")
     expect(socket.types.first).to eq(:text)
     session.stop
@@ -170,7 +170,7 @@ RSpec.describe SpeechService::AzureSpeech do
       expect(request["Content-Type"]).to eq("application/ssml+xml")
       expect(request["Ocp-Apim-Subscription-Key"]).to eq("test-key")
       expect(request["X-Microsoft-OutputFormat"]).to eq("audio-16khz-128kbitrate-mono-mp3")
-      expect(request["User-Agent"]).to eq("rexone-core")
+      expect(request["User-Agent"]).to eq("hysanjunio-core")
       expect(request.body).to include('xml:lang="en-US"')
       expect(request.body).to include('name="en-US-JennyNeural"')
       expect(request.body).to include("Hello &lt;world&gt;")

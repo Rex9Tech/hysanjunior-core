@@ -64,7 +64,12 @@ module MediaConstants
 
   # Subtitle format extensions
   SUBTITLE_EXT_SRT = "srt".freeze
-  SUBTITLE_CONTENT_TYPES = [ "application/x-subrip", "text/plain" ].freeze
+  # Browsers often send .srt as application/octet-stream.
+  SUBTITLE_CONTENT_TYPES = [
+    "application/x-subrip",
+    "text/plain",
+    "application/octet-stream"
+  ].freeze
 
   # Asset processing statuses
   module Status

@@ -1,12 +1,12 @@
-# 🏛️ The RexOne Ecosystem
+# 🏛️ The RexOne Architecture Foundation: Unified Ecosystem Specification
 
-A unified architectural specification and cross-platform contract spanning **RexOne Core** (Rails), **RexOne Web** (React), and **RexOne Mobile** (Flutter).
+A unified architectural specification and cross-platform contract spanning **RexOne Core** (Rails API), **RexOne Web** (React SPA), and **RexOne Mobile** (Flutter Native).
 
 ---
 
 ## 📜 Architectural Baseline
 
-RexOne establishes a disciplined, production-grade foundation for modern digital products:
+RexOne establishes the **RexOne Architecture Foundation**—a disciplined, production-grade tri-platform standard for modern digital products:
 
 - **Identity & IAM**: Passwordless/passcode auth, Google SSO, granular role-based access control.
 - **Commerce & Subscriptions**: Stripe Checkout, recurring billing, coupon redemptions, access entitlement ledger.
@@ -25,7 +25,7 @@ Building any modern commercial digital product across Backend, Web, and Native M
 - **Months 7–9**: Building CRUD admin portals, S3 signed upload pipelines, WebSockets, and resolving 50+ JSON contract drifts between Web and Flutter.
 - **The Result**: $150,000–$300,000 burned before writing a single line of proprietary business logic.
 
-**RexOne is Architectural Time Travel.** By delivering a synchronized, battle-hardened foundation across Rails 8, React 19, and Flutter 3 backed by 1,690+ automated tests, RexOne deletes 9 months of generic plumbing from your roadmap. You launch your unique product in **1 to 3 weeks**.
+**RexOne is Architectural Time Travel.** By delivering a synchronized, battle-hardened foundation across Rails 8, React 19, and Flutter 3 backed by 1,785+ automated tests (1,071 RSpec + 372 Vitest + 342 Flutter), RexOne deletes 9 months of generic plumbing from your roadmap. You launch your unique product in **1 to 3 weeks**.
 
 > _The author (Rex) could have closed-sourced this enterprise foundation or charged $800+ behind a commercial paywall. Instead, out of pure loving-kindness (mettā) for builders, indie hackers, and learners worldwide, RexOne is 100% free and open-source under Apache 2.0. If RexOne saves you months of work, please kindly return the loving-kindness: [Sponsor the Author on GitHub](https://github.com/sponsors/rex-9) and star the repositories. Thank u so much for your kindness._
 
@@ -34,25 +34,28 @@ Building any modern commercial digital product across Backend, Web, and Native M
 | Resource                     | Scope & Canonical Specification                                                                                                                           |
 | :--------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 📜 **Constitutional Law**    | Strict engineering constraints and architectural rules: **[LAW.md](LAW.md)** _(Zero exceptions)_                                                          |
-| 🤝 **Governance & RFCs**     | Community guidelines, Code of Conduct, and BDFL/RFC governance: **[GOVERNANCE.md](GOVERNANCE.md)** & **[CONTRIBUTING.md](CONTRIBUTING.md)**               |
-| 🤖 **Anti-Vibe AI Policy**   | Machine-enforced coding standards for AI assistants & contributors: **[AI Contribution Policy](docs/AI_CONTRIBUTION_POLICY.md)**                           |
-| 🎓 **GSoC & Grants Roadmap** | Google Summer of Code project ideas catalog & institutional grant roadmap: **[GSoC Ideas Catalog](docs/GSOC_IDEAS.md)**                                   |
-| 🌐 **Public Distribution**   | Curated directories, Awesome-lists, and community launch indexes: **[docs/DISTRIBUTION.md](docs/DISTRIBUTION.md)**                                       |
-| 📖 **API Docs & Swagger**    | Complete OpenAPI v1 schema and interactive Swagger UI at `/api-docs`: **[swagger.yaml](swagger/v1/swagger.yaml)** (Spec: `spec/openapi/v1.rb`)            |
+| 🤝 **Governance & RFCs**     | Community guidelines, Code of Conduct, and BDFL/RFC governance: **[GOVERNANCE.md](https://github.com/rex-9/rexone-core/blob/dev/GOVERNANCE.md)** & **[CONTRIBUTING.md](CONTRIBUTING.md)** |
+| 🤖 **Anti-Vibe AI Policy**   | Machine-enforced coding standards for AI assistants & contributors: **[AI Contribution Policy](https://github.com/rex-9/rexone-core/blob/dev/docs/AI_CONTRIBUTION_POLICY.md)** |
+| 🎓 **GSoC & Grants Roadmap** | Google Summer of Code project ideas catalog & institutional grant roadmap: **[GSoC Ideas Catalog](https://github.com/rex-9/rexone-core/blob/dev/docs/GSOC_IDEAS.md)** |
+| 🌐 **Public Distribution**   | Curated directories, Awesome-lists, and community launch indexes: **[Public Distribution](https://github.com/rex-9/rexone-core/blob/dev/docs/DISTRIBUTION.md)** |
+| 📖 **API Docs & Swagger**    | Complete OpenAPI v1 schema and interactive Swagger UI at `/admin/api-docs`: **[swagger.yaml](https://github.com/rex-9/rexone-core/blob/dev/swagger/v1/swagger.yaml)** (Spec: `spec/openapi/v1.rb`) |
 | 🌐 **Live Web Demo**         | Production web application preview: **[rexone.rex9.me](https://rexone.rex9.me)** (API: `api.rexone.rex9.me`)                                              |
-| 🗺️ **Visual Walkthrough**    | Screenshot tour across Core, Web, Mobile, and operations: **[VISUAL_WALKTHROUGH.md](./docs/VISUAL_WALKTHROUGH.md)**                                       |
-| 🛡️ **Production Operations** | Production hardening, Cloudflare edge defense, and DDoS protection: **[Production Deployment](docs/DEPLOYMENT.md)** & **[DDoS Protection](docs/DDOS.md)** |
-| 🌐 **AI Discovery & GEO**    | Machine-readable context files (`/llms.txt`, `/llms-full.txt`), crawler policies: **[AI Discovery & GEO Guide](../rexone-web/docs/SEO_GEO.md)**           |
-| 🎞️ **Media Playback**        | Short-lived signed provider URLs and streaming roadmaps: **[Media Playback](docs/MEDIA_PLAYBACK.md)** & **[Roadmap](docs/roadmaps/MEDIA_STREAMING.md)**   |
+| 🗺️ **Visual Walkthrough**    | Screenshot tour across Core, Web, Mobile, and operations: **[Visual Walkthrough](https://github.com/rex-9/rexone-core/blob/dev/docs/VISUAL_WALKTHROUGH.md)** |
+| 🛡️ **Production Operations** | Production hardening, Cloudflare edge defense, and DDoS protection: **[Core Deployment](https://github.com/rex-9/rexone-core/blob/dev/docs/DEPLOYMENT.md)** & **[DDoS Protection](https://github.com/rex-9/rexone-core/blob/dev/docs/DDOS.md)** |
+| 📱 **Mobile Store CI/CD**    | Google Play & Apple TestFlight automated release pipelines: **[Mobile Deployment](https://github.com/rex-9/rexone-mobile/blob/dev/docs/DEPLOYMENT.md)** |
+| 🌐 **AI Discovery & GEO**    | Machine-readable context files (`/llms.txt`, `/llms-full.txt`), crawler policies: **[AI Discovery & GEO Guide](https://github.com/rex-9/rexone-web/blob/dev/docs/SEO_GEO.md)** |
+| 🎞️ **Media Playback**        | Short-lived signed provider URLs and streaming roadmaps: **[Media Playback](https://github.com/rex-9/rexone-core/blob/dev/docs/MEDIA_PLAYBACK.md)** & **[Roadmap](https://github.com/rex-9/rexone-core/blob/dev/docs/roadmaps/MEDIA_STREAMING.md)** |
 
 ### 🌐 Multi-Environment Domain Strategy
 
 Standardized across the ecosystem for any derivative product (custom TLD):
 
 - **Demo Tier**: `rexone.rex9.me` (Web) & `api.rexone.rex9.me` (API)
-- **Product Prod**: `<product>.<tld>` (e.g. `rexone.me`) & `api.<product>.<tld>` (e.g. `api.rexone.me`)
-- **Product UAT**: `uat.<product>.<tld>` (e.g. `uat.rexone.me`) & `uat.api.<product>.<tld>` (e.g. `uat.api.rexone.me`)
-- **Product Dev**: `dev.<product>.<tld>` (e.g. `dev.rexone.me`) & `dev.api.<product>.<tld>` (e.g. `dev.api.rexone.me`)
+- **Product Prod**: `<product>.<tld>` (e.g. `example.com`) & `api.<product>.<tld>` (e.g. `api.example.com`)
+  - **Mobile App**: `<App Name>` (Android: `<com.company.app>`, iOS: `<com.company.app>`), deep link: `<scheme>://`
+- **Product UAT**: `uat.<product>.<tld>` (e.g. `uat.example.com`) & `uat.api.<product>.<tld>` (e.g. `uat.api.example.com`)
+  - **Mobile App**: `<App Name> UAT` (Android: `<com.company.app>.uat`, iOS: `<com.company.app>.uat`), deep link: `<scheme>-uat://`
+- **Product Dev**: `dev.<product>.<tld>` (e.g. `dev.example.com`) & `dev.api.<product>.<tld>` (e.g. `dev.api.example.com`)
 
 ---
 
@@ -136,13 +139,15 @@ All tables use **UUID** primary keys (`gen_random_uuid()`), soft deletes via **D
 | Domain               | Key Models                                                                                                                          | Responsibilities                                                                                                                                                                                                               |
 | :------------------- | :---------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Identity & Users** | `User`                                                                                                                              | Devise authentication, JWT JTI revocation, 6-digit confirmation codes, 6-digit password reset codes, Google OAuth linking, Stripe customer generation, profile avatar assets.                                                  |
-| **IAM (RBAC)**       | `Iam::Role`, `Iam::Permission`, `Iam::UserRole`, `Iam::RolePermission`                                                              | Granular action-resource permissions (`user.can?(action, resource)`). System roles (`super_admin`, `admin`, default `user`). Dynamic auto-assignment on signup.                                                                |
+| **IAM (RBAC)**       | `Iam::Role`, `Iam::Permission`, `Iam::UserRole`, `Iam::RolePermission`                                                              | Granular action-resource permissions (`user.can?(action, resource)`). System roles (`super_admin`, `admin`, default `user`, `student`, `parent`, `teacher_admin`). Dynamic auto-assignment of `user` on signup.                                                                |
 | **Commerce**         | `Payment::Product`, `Payment::Subscription`, `Payment::Purchase`, `Payment::Coupon`, `Payment::UserCoupon`, `Payment::WebhookEvent` | Stripe product/price catalog, subscription items snapshot, percentage/fixed coupons with referral generation, targeting restrictions, immutable redemption ledger, purchase receipts, durable webhooks.                        |
 | **Entitlements**     | `Access`                                                                                                                            | Granted, revoked, and expired product access records tied to users and products.                                                                                                                                               |
 | **AI / Chat**        | `Chat::Room`, `Chat::Message`, `Ai::Profile`, `Ai::Run`                                                                             | Flexible chat rooms (`ai`, `direct`, `group`, hybrid), message processing jobs, 2,000-char message chunking (`split_id`, `chunk_index`, `total_chunks`), provider abstraction, execution telemetry.                            |
 | **Media**            | `Asset`                                                                                                                             | Unified media records, Garage S3 storage keys (`user/{user_id}/...`, `admin/...`), compression telemetry, status (`pending`, `processing`, `ready`, `optimal`), child assets (`parent_asset_id` for thumbnails and subtitles). |
 | **Telemetry**        | `Client::Log`                                                                                                                       | Client error ingest (stack traces, device, OS, browser, URL, severity, cookies, storage keys), linked to optional `version_id`.                                                                                                |
 | **Feedback**         | `Feedback`                                                                                                                          | User rating (1–10), auto-inferred category (`bug`, `feature_request`, `improvement`, `general`), urgency (`low`, `normal`, `high`, `urgent`), device/route telemetry.                                                          |
+| **CMS / Lessons**    | `Lesson`, `Vocabulary`, `WordFamily`, `Question` / `QuestionOption`, `SortHealthChoice` (+ media `Asset`)                           | Admin CMS lesson catalog. Song + story (SRT) + nested vocabularies + word families + `story_order` + `build_the_sentences` + MCQ `questions[]` + `sort_health_choices[]` (label + vocab items reusing `vocabularies` via `sort_health_choice_id`). Async AI generate endpoints persist word families / story order / build sentences directly. Publish also requires ≥1 ready MCQ and ≥1 sort-health group. |
+| **CMS / Campus**     | `Campus`, `SchoolClass`, `CampusMembership`, `ClassAssignment`, `ClassEnrollment`, `ClassHomework`, `ParentStudent`                | Admin CMS org hierarchy. Campus → classes by `level` → student enrollments. Teachers attach to campus (`campus_memberships`), then to classes (`class_assignments`). Class homeworks assign a lesson + ordered activity subset (+ optional play song/story first) to a class; same lesson may be assigned multiple times. Parents link only via `parent_students`. Campus student list derived through enrollments. Web Student Management orchestrates user create (`student`/`parent` roles) + enrollment + parent link in one admin form. Web Teacher Management orchestrates user create (`teacher_admin`) + campus membership + optional class assignment. |
 | **Notifications**    | `Notification`, `UserNotification`                                                                                                  | Multi-channel templates (In-App, Push, Email) with dynamic variable interpolation (`user_name`, `user_email`, `link`, domain entities), persistent inbox receipts with Pagy pagination.                                        |
 | **App Versions**     | `Client::Version`, `Client::UserVersion`                                                                                            | Marketing versions (`draft`, `published`, `yanked`), semantic version comparison, mandatory/optional update evaluation, client installation snapshots.                                                                         |
 
@@ -191,16 +196,17 @@ Solid Queue operates under a hybrid concurrency architecture configured in `conf
 
 ### 🔐 RBAC Model & Administrative Hierarchy
 
-Permissions follow a clean, four-level administrative model:
+Permissions follow a clean administrative model:
 
 1. **`super_admin`**: Full system-wide authority over all resources, configurations, and IAM tables.
-2. **`admin`**: Operational control across domain resources (`feedbacks`, `payments`, `ai`, `assets`, `logs`, `notifications`). Restricted from managing `users`, `iam`, `versions`, and `user_versions`.
-3. **Partial Admin (`*_admin`)**: Scoped administrative roles (e.g. `feedback_admin`, `payment_admin`, `ai_admin`).
+2. **`admin`**: Operational control across domain resources (`feedbacks`, `lessons`, `campuses`, `school_classes`, `payments`, `ai`, `assets`, `logs`, `notifications`). Restricted from managing `users`, `iam`, `versions`, and `user_versions`.
+3. **Education roles**: `student`, `parent`, `teacher_admin` — system roles for campus org. CMS write remains admin-owned in this slice; `teacher_admin` attaches to campuses via `campus_memberships`.
+4. **Partial Admin (`*_admin`)**: Scoped administrative roles (e.g. `feedback_admin`, `payment_admin`, `ai_admin`).
    - Must use the `*_admin` suffix convention.
    - Grants access only to specific `/v1/admin/*` resources matching the role's assigned permissions.
    - Non-admin permissions (e.g. from the base `user` role) can never access `/v1/admin/*` endpoints.
-4. **Single-Request IAM Introspection**: `GET /v1/users/current/iam` returns complete role/permission sets (`is_admin`, `is_super_admin`, `roles`, `admin_roles`, `permissions`, `admin_permissions`) so clients evaluate UI permissions immediately without secondary calls.
-5. **Unified Product Entitlements Flow (`UserSerializer.accesses`)**: Just like IAM permissions, active product accesses (`id`, `product_id`, `product_code`, `product_name`, `granted_at`, `expires_at`, `remaining_days`, `active`) are serialized directly into `UserSerializer.accesses` upon authentication (`/signin`, `/signup`, `/confirmation`) and session introspection (`GET /v1/users/me`). Frontends (Web & Mobile) persist this payload locally on boot, evaluate entitlements in-memory with real-time expiration awareness (`useAccess` in Web, `AuthController.hasAccess` in Mobile), and seamlessly refresh via WebSockets (`payment_success`, `subscription_created`).
+5. **Single-Request IAM Introspection**: `GET /v1/users/current/iam` returns complete role/permission sets (`is_admin`, `is_super_admin`, `roles`, `admin_roles`, `permissions`, `admin_permissions`) so clients evaluate UI permissions immediately without secondary calls.
+6. **Unified Product Entitlements Flow (`UserSerializer.accesses`)**: Just like IAM permissions, active product accesses (`id`, `product_id`, `product_code`, `product_name`, `granted_at`, `expires_at`, `remaining_days`, `active`) are serialized directly into `UserSerializer.accesses` upon authentication (`/signin`, `/signup`, `/confirmation`) and session introspection (`GET /v1/users/me`). Frontends (Web & Mobile) persist this payload locally on boot, evaluate entitlements in-memory with real-time expiration awareness (`useAccess` in Web, `AuthController.hasAccess` in Mobile), and seamlessly refresh via WebSockets (`payment_success`, `subscription_created`).
 
 ### 🛠️ Core Client-Admin API Endpoints
 
@@ -215,6 +221,8 @@ Permissions follow a clean, four-level administrative model:
 - **Asset Management**: `GET /v1/assets` (list assets by type), `POST /v1/assets/upload` (direct upload), `GET /v1/assets/:id/playback` (S3 SigV4 signed playback URL), `GET /v1/assets/:id/subtitles/:subtitle_id` (CORS-enabled raw VTT/SRT text). Admin API: `GET/PUT/DELETE /v1/admin/assets`, `GET /v1/admin/assets/storage_stats` (bucket, object, and host disk capacity), manual secondary compression triggers.
 - **Video Thumbnails & Subtitles**: Core generates WebP thumbnails asynchronously and broadcasts `asset_thumbnail_generated`. Admins can upload thumbnail replacements or attach `.srt` subtitle files (`POST /v1/admin/assets/:id/subtitle/upload`). Subtitles are served inline with pre-fetched text.
 - **Notifications**: `GET/POST /v1/admin/notifications`, `POST /v1/admin/notifications/dispatch` (audience fanout by roles/users/all), and `GET/DELETE /v1/admin/user_notifications` (receipt lifecycle, recycle bin management).
+- **CMS Lessons**: Admin-only. `GET/POST /v1/admin/lessons`, `GET/PATCH/PUT/DELETE /v1/admin/lessons/:id`, `POST /v1/admin/lessons/:id/undiscard`, AI generate members (`create_word_families`, `create_story_order`, `create_build_the_sentences`) that persist into the matching lesson fields when the job completes. Create/update nests `vocabularies[]`, `word_families[]`, `questions[]`, and `sort_health_choices[]` (group `label` + nested vocab items stored in `vocabularies` with `sort_health_choice_id`; separate from lesson vocab list) and may set `story_order[]` / `build_the_sentences[]`. Publish requires song+SRT, story+SRT, ≥1 vocab with image, ≥1 word family, non-empty `story_order`, one `{vocab, sentence}` per vocabulary, ≥1 ready MCQ, and ≥1 ready sort-health group. Ordinary users receive no default `lessons` permissions.
+- **CMS Campus**: Admin-only. `GET/POST /v1/admin/campuses`, `GET/PATCH/PUT/DELETE /v1/admin/campuses/:id`, `POST /v1/admin/campuses/:id/undiscard`, `GET /v1/admin/campuses/:id/students` (active enrollments under the campus’s classes; filter `level`, `school_class_id`). Campus records include `phone`, `location`, and optional thumbnail `image_asset_id` (Garage asset). Seeds load the 16 public Hysan Junior campuses (name/phone/location; photos empty). `school_classes` CRUD (filter `campus_id`, `level`). `campus_memberships` attach/detach `teacher_admin` users to a campus. `class_assignments` assign a campus teacher to a `school_class` (requires prior campus membership). `class_enrollments` place `student` users into a class (one active enrollment per student). `class_homeworks` assign a lesson to a class with ordered `activity_keys` (11-activity catalog) and optional `play_song_at_first` / `play_story_at_first`; same lesson may be assigned multiple times. `parent_students` link `parent` ↔ `student` with no campus membership. Education roles (`student`, `parent`, `teacher_admin`) are system IAM roles; CMS write stays on `super_admin` / `admin` for this slice. Web admin Student Management (`/admin/students`) composes `users` + `class_enrollments` + `parent_students` for intake (create student, place by campus/level/class, optional parent create or link). Web admin Teacher Management (`/admin/teachers`) composes `users` + `campus_memberships` + optional `class_assignments`. Class detail Homework section lists / assigns / edits via dialog against `class_homeworks`. `GET /v1/admin/campus_memberships/:id` returns a single membership for detail screens.
 
 ---
 
@@ -227,7 +235,28 @@ Permissions follow a clean, four-level administrative model:
 - **Networking**: Axios instance with centralized auth interceptors; Action Cable JS client for WebSockets.
 - **Localization**: `i18next` with strictly typed keys (`en`, `es`, `my`).
 
+### Admin CMS — Student Management
+
+- Sidebar **Content Management → Students** (`/admin/students`).
+- Create form orchestrates Core `POST /v1/admin/users` (role `student`), optional parent create/link (`parent` role + `parent_students`), and `POST /v1/admin/class_enrollments` (campus → level → class).
+- Detail view manages class change and parent links against existing enrollment APIs, and lists class homework inherited from the enrolled school class (read-only).
+
+
+### Admin CMS — Teacher Management
+
+- Sidebar **Content Management → Teachers** (`/admin/teachers`).
+- Create form orchestrates Core `POST /v1/admin/users` (role `teacher_admin`), `POST /v1/admin/campus_memberships`, and optional `POST /v1/admin/class_assignments`.
+- Detail view lists class assignments and supports assign/unassign; campus Teachers tab remains for campus-scoped attach of existing users.
+
+### Admin CMS — Class Homework
+
+- On school class detail (`/admin/school-classes/:id`), Homework section lists assignments and opens `AssignHomeworkDialog` for create/edit.
+- Dialog: pick published lesson → ordered subset of 11 activities (add / remove / up-down) → toggles for play song/story at first → optional title / due date.
+- Same lesson may be assigned multiple times; backed by Core `GET/POST/PATCH/DELETE /v1/admin/class_homeworks`.
+- Student detail (`/admin/students/:enrollmentId`) shows a read-only Homework list inherited from the student’s enrolled class (`GET /v1/admin/class_homeworks?school_class_id=`).
+
 ### 🎨 Design System Architecture (`src/design/`)
+
 
 - **Atoms & Tokens**: Neon Scarlet Red (`#FF2238`), Secondary Vermilion (`#FF4D2E`), Accent Laser Red (`#FF0D2D`), Deep Night Canvas (`#160B11`), 8-based spacing grid, soft radius scale (`xs` to `full`).
 - **Inputs**: `TextInput`, `TextArea`, `PasswordInput`, `Dropdown`, `Toggle`, `DateTimePicker` (with automatic UTC $\leftrightarrow$ Local conversion), `NumberInput`.
@@ -252,9 +281,9 @@ Permissions follow a clean, four-level administrative model:
 
 ### 🛠️ Tech Stack & Architecture
 
-- **Framework**: Flutter `3.x`, Dart `3.x`.
-- **Architecture**: GetX MVC (Pages $\rightarrow$ Controllers $\rightarrow$ Services $\rightarrow$ Models), dependency injection via `InitialBinding`.
-- **Core Packages**: `GetStorage` (persistence), `Drift` (local SQLite database), `Flutter ScreenUtil` (375x812 baseline), `Flutter Dotenv` (`.env.dev`, `.env.uat`, `.env.prod`), `Google Sign In`, `OneSignal Flutter`, `Firebase Analytics`, `media_kit`, `upgrader`.
+- **Framework**: Flutter `3.x`, Dart `3.x` (pure native 60fps).
+- **Architecture**: GetX Clean MVC (Pages $\rightarrow$ Controllers $\rightarrow$ Services $\rightarrow$ Models), dependency injection via `InitialBinding`.
+- **Core Packages**: `get` (reactive state management & DI), `drift` & `drift_flutter` (type-safe SQLite local database), `flutter_screenutil` (375x812 baseline), `flutter_dotenv` (`.env.dev`, `.env.uat`, `.env.prod`), `google_sign_in`, `onesignal_flutter`, `firebase_analytics`, `better_player` (hardware-accelerated video), `just_audio` & `just_audio_background` (background audio engine), `background_downloader` & `live_activities`, `cryptography` (AES-256-GCM sandbox encryption), `in_app_purchase` (Google Play Billing & StoreKit), `app_links` (universal deep linking).
 
 ### 🎨 Mobile Design System (`lib/design/`)
 
@@ -270,10 +299,11 @@ Permissions follow a clean, four-level administrative model:
 - **Product Analytics**: Firebase GA4 integration using constantized `action_noun` events (`sign_up`, `sign_in`, `view_product`, `purchase_product`, `open_notification`) tagged with platform (`android`, `ios`).
 - **Stripe & Billing**: In-app Stripe Checkout WebView (`CheckoutPage`), subscription management cards, cancellation confirmation, canonical currency minimum charge limits (`StripeMinimumAmounts`).
 - **AI Assistant**: Persistent multi-room chat, JSON:API response parsing, background thinking indicators, real-time completion toasts over WebSocket.
-- **Media Playback & Lyrics**: Mixed audio/video playlist from `GET /v1/assets`, signed streaming URLs from `GET /v1/assets/:id/playback`, background audio player, inline video (`media_kit`), and synced `.srt` subtitles/lyrics with per-track selection.
-- **Offline Media & SQLite (Drift)**: AES-GCM encrypted sandbox downloads backed by local Drift SQLite database (`rexone_offline`). Local-first playback preferences and storage management dialog.
+- **Media Playback & Lyrics**: Mixed audio/video playlist from `GET /v1/assets`, signed streaming URLs from `GET /v1/assets/:id/playback`, background audio player (`just_audio` + `just_audio_background`), hardware-accelerated inline video (`better_player` with dynamic 16:9 layout helper, audio focus tuning, and 100MB chunk caching), and synced `.srt` subtitles/lyrics with per-track selection and gap bridging.
+- **Offline Media & SQLite (Drift)**: AES-256-GCM encrypted local application sandbox downloads backed by local Drift SQLite database (`rexone_offline`). Schema parity mirroring backend polymorphic tables (`local_assets`, `local_child_assets`). Local-first playback preferences and offline playlist mode with pre-fetched SRT subtitles and zero network-choke.
 - **Client Telemetry**: Uncaught Flutter and platform dispatcher errors dispatched to Core via `POST /v1/client/logs`.
 - **Localization**: 100% translated in English (`en_US`), Spanish (`es_ES`), and Burmese (`my_MM`). Synchronizes `X-Locale` and `Accept-Language` headers on every HTTP request.
+- **Dual-App Architecture & Store CI/CD**: Side-by-side Prod & UAT application IDs (`<com.company.app>` vs `<com.company.app>.uat`) preventing physical device overwrites, automated GitHub Actions release builds on Linux runners with direct upload to Google Play **Internal Testing**, and native local Apple Silicon CLI (`./scripts/release_ios.sh`) pre-validating and deploying release IPAs directly to Apple **TestFlight** in ~90 seconds with zero cloud cost (see [Mobile Deployment](https://github.com/rex-9/rexone-mobile/blob/dev/docs/DEPLOYMENT.md)).
 
 ---
 
@@ -295,6 +325,7 @@ Permissions follow a clean, four-level administrative model:
 | **Stripe: Subscriptions & Cancellation/Resumption**                   |      ✅       |          ✅          |            ✅            |
 | **Stripe: Purchase History & Discount Audits**                        |      ✅       |          ✅          |            ✅            |
 | **User Feedback System (1–10 Rating & Auto-Triage)**                  |      ✅       |          ✅          |            ✅            |
+| **CMS: Admin Lessons (song, story, vocabularies, word families)**     |      ✅       |         Planned      |           N/A            |
 | **Chat: Conversational Rooms (AI, Direct, Group)**                    |      ✅       |          ✅          |            ✅            |
 | **AI: Queued Background Execution (DeepSeek / Gemini)**               |      ✅       |          ✅          |            ✅            |
 | **AI: Real-Time WebSocket Completion Alerts**                         |      ✅       |          ✅          |            ✅            |
@@ -314,6 +345,16 @@ Permissions follow a clean, four-level administrative model:
 | **Admin AI Control Panel (Profiles & Runs Telemetry)**                |      ✅       |          ✅          |           N/A            |
 | **In-App Version Upgrader & Splash Check**                            |      ✅       |          ✅          |            ✅            |
 | **AI Discovery & Generative Engine Optimization (GEO)**               |      N/A      |          ✅          |           N/A            |
+| **Dual-App Store Architecture (Prod vs UAT)**                         |      N/A      |         N/A          |            ✅            |
+| **Automated Android CI/CD (Google Play & GitHub Releases)**           |      N/A      |         N/A          |            ✅            |
+| **Native iOS TestFlight CLI Pipeline (`release_ios.sh`)**              |      N/A      |         N/A          |            ✅            |
+| **Single-Command Multi-Platform Rebranding Engine**                   |      ✅       |          ✅          |            ✅            |
+| **Modular Coolify PaaS VPS Deployment**                               |      ✅       |          ✅          |           N/A            |
+| **Zero-JSON LLM Pipeline (TOON Compression 30–60%)**                  |      ✅       |          ✅          |            ✅            |
+| **Omnichannel In-App Purchases (Stripe, Play Store, App Store)**      |      ✅       |         N/A          |            ✅            |
+| **Hardware-Accelerated Media Streaming (Vidstack / BetterPlayer)**    |      ✅       |          ✅          |            ✅            |
+| **AES-256-GCM Encrypted Media Downloads (Drift SQLite)**              |      N/A      |         N/A          |            ✅            |
+| **Universal Deep Linking (`rexone://`) & Continue URLs**              |      N/A      |          ✅          |            ✅            |
 
 ---
 
@@ -399,7 +440,7 @@ Permissions follow a clean, four-level administrative model:
 - **Response Flags**:
   - `update_required`: `true` when client version is strictly behind the live published version (triggers non-blocking update prompt).
   - `must_update`: `true` when the live version is flagged as force update and is newer than the client (triggers mandatory blocking modal).
-  - `skip_premium`: `true` when client version is strictly newer than the live published version (e.g. app store review builds).
+  - `skip_premium`: `true` when no live version is published yet in the catalog (initial app store review dark launch) or when client version is strictly newer than the live published version (app store review builds).
   - `store_url`: Platform store URL configured via `IOS_STORE_URL` or `ANDROID_STORE_URL`.
 - **Client Handling**:
   - Mobile: When `must_update` is true, `SplashPage` presents an un-bypassable `PopScope(canPop: false)` blocking screen. Optional updates (`update_required: true && !must_update`) prompt on `HomePage` via `AppDialog.update(...)`. `VersionModel.fromJson` and `ApiService#parseRecord` seamlessly resolve both JSON:API attributes envelopes and flat key structures.
@@ -434,6 +475,12 @@ Broadcasts async processing events, payment confirmations, and in-app inbox item
 | `access_revoked`            | `product_id`                                                                                     | Manual admin entitlement revocation; JWT invalidated, client signs out.      |
 | `session_expired`           | `{}`                                                                                             | Server session expired; client signs out.                                    |
 | `session_invalidated`       | `{}`                                                                                             | Server session invalidated; client signs out.                                |
+| `lesson_word_families_generated` | `lesson_id`, `run_id`, `word_families`                                                      | AI word families generated and saved on the lesson (`word_families[]` with `id`). |
+| `lesson_word_families_failed`    | `lesson_id`, `run_id`, `error`                                                              | AI word-family generation failed.                                            |
+| `lesson_story_order_generated`   | `lesson_id`, `run_id`, `story_order`                                                        | AI story order generated and saved on the lesson.                            |
+| `lesson_story_order_failed`      | `lesson_id`, `run_id`, `error`                                                              | AI story-order generation failed.                                            |
+| `lesson_build_the_sentences_generated` | `lesson_id`, `run_id`, `build_the_sentences`                                          | AI build-the-sentences generated and saved on the lesson.                    |
+| `lesson_build_the_sentences_failed`    | `lesson_id`, `run_id`, `error`                                                          | AI build-the-sentences generation failed.                                    |
 | `welcome`                   | `{}`                                                                                             | Emitted upon successful Action Cable subscription.                           |
 
 _Navigation targets_: `link` represents the destination. Common internal destinations: `/home`, `/profile`, `/payment`, `/ai`. External URLs (`https://`) open in a new tab on Web and request user confirmation before opening the system browser on Mobile.
@@ -645,6 +692,76 @@ _Version resolution_: Core maps `app_version` to a matching `Client::Version` re
   - Mobile features `PaymentConfig.enableInAppPurchases = false` by default, ensuring developers without app store merchant setups can run the app without errors or native store channel initialization.
   - When `enableInAppPurchases = false`, mobile exclusively displays Stripe web checkout on all platforms.
   - When `enableInAppPurchases = true`, mobile dynamically resolves native store SKUs (`googlePlayProductId` on Android, `appStoreProductId` on iOS), displaying native store checkout alongside optional card checkout when `supportsStripe` is true.
+
+### 9. Return-After-Auth Protocol & Universal Deep Linking (`rexone://`)
+
+A unified, tamper-proof protocol across Web and Mobile that preserves user navigation intent when unauthenticated visitors attempt to access protected resources, coupled with native universal deep link dispatch:
+
+- **Cross-Platform Storage Standard**:
+  - Universal storage key: `continueUrl` (`StorageKeys.CONTINUE_URL` on Web, `StorageKeys.continueUrl` on Mobile).
+- **Strict Zero URL Query Parameter Law**:
+  - `continueUrl` is **NEVER** exposed in URL query parameters (`?continueUrl=...`, `?returnTo=...`).
+  - Stored strictly in local client storage (`localStorage` via `AtomService` on Web, `GetStorage` via `StorageService` on Mobile) to eliminate URL tampering, open-redirect vulnerabilities, credential phishing vectors, and broken UX caused by users accidentally deleting or modifying query parameters.
+- **Capture on Protected Access**:
+  - **Web (`ProtectedRoute.tsx`)**: When an unauthenticated visitor accesses an auth-required route (e.g., `/ai`), the router captures `location.pathname + location.search`, persists it via `AtomService.setContinueUrl(targetUrl)`, and opens the onboarding auth dialog (`AppRoutes.buildDialogUrl(DialogAuthSteps.INITIAL)`).
+  - **Mobile (`GuardRoutes.redirect` / `AppRoutes.handleDeepLink`)**: When an unauthenticated visitor hits an auth-required route (`AppRoutes.ai`, `AppRoutes.settings`, deep link), the router executes `storage.setContinueRoute(target)` and redirects to `AppRoutes.auth`.
+- **Open-Redirect & Circular Loop Protection (`getSafeContinueUrl`)**:
+  - Must begin with a single `/` and must not begin with `//` (protocol-relative external redirect attack prevention).
+  - Explicitly rejects circular auth routes (`/signin`, `/signup`, `/confirm-email`, `/forgot-password`, `/reset-password`, `/signout`) using centralized `AppRoutes` constants with zero hardcoded string literals.
+  - Returns `null` if the stored route violates validation rules.
+- **Consumption on Authentication (`navigateContinueURL`)**:
+  - Upon completing authentication (password login, Google SSO, signup verification OTP, or email confirmation token link), client consumes and immediately purges the stored continue route (`consumeContinueUrl` on Web, `consumeContinueRoute` on Mobile).
+  - **Web (`navigateContinueURL(navigate)`)**: If a valid continue route was stored and passes `getSafeContinueUrl(target)`, navigates with history replacement (`navigate(target, { replace: true })`), falling back cleanly to `AppRoutes.client.protected.HOME`.
+  - **Mobile (`AppRoutes.navigateContinueURL([storageService])`)**: Because unauthenticated mobile users are gated behind `/auth` without access to in-app links, `continueRoute` triggers when unauthenticated users open external deep links (`rexone://...`) or push notification links. To prevent users from being trapped on the destination without a way to return to `Home`, mobile mounts `AppRoutes.home` as the navigation stack base (`Get.offAllNamed(AppRoutes.home)` followed by `Get.toNamed(continueRoute)`), persists `_storage.saveRouteStack([AppRoutes.home, continueRoute])`, enabling standard back-button and swipe-back navigation directly to `Home`. If no continue route is present, falls back cleanly to `AppRoutes.toHome()`.
+- **Universal Deep Linking Specification (`rexone://`)**:
+  - **Custom Scheme Authority**: Canonical URI scheme is strictly `rexone://` (e.g. `rexone://ai`, `rexone://payment`, `rexone://profile`, `rexone://settings`, `rexone://notifications`). Legacy or compound schemes like `rexonemobile://` are rejected.
+  - **Native Platform Registrations**:
+    - **iOS (`ios/Runner/Info.plist`)**: Registered under `CFBundleURLTypes` -> `CFBundleURLSchemes` with `<string>rexone</string>`.
+    - **Android (`android/app/src/main/AndroidManifest.xml`)**: Configured with `<intent-filter>` for `android.intent.action.VIEW` with `android:scheme="rexone"`.
+  - **Flutter Routing Gateway (`DeepLinkService` & `AppRoutes.handleDeepLink`)**:
+    - Native stream and initial cold-start links are listened to via `app_links` in `DeepLinkService`.
+    - `AppRoutes.handleDeepLink` parses URIs via `AppRoutes.resolveNotificationRoute`:
+      - If user is unauthenticated: stores route as `continueRoute` and prompts/redirects to `/auth`. Once authenticated, `navigateContinueURL` restores the requested screen atop `Home`.
+      - If user is already authenticated: guarantees `Home` is the base of the backstack (`Get.offAllNamed(home)` then `Get.toNamed(target)`) so native back navigation always leads back to `Home`.
+- **Session Purge on Sign Out**:
+  - Explicit sign-out (`signOut`) and auth dialog dismissal (`handleClose`) automatically clear `continueUrl` from local storage to prevent stale redirects.
+
+---
+
+### 10. Single-Command Multi-Platform Rebrand Engine Specification
+
+RexOne includes a built-in, zero-friction rebranding engine executed via a single master command from `rexone-core`:
+
+```bash
+# Full ecosystem synchronization (Core API, Web SPA, and Mobile Flutter simultaneously):
+./scripts/rebrand.sh brand.config.json
+```
+
+For the comprehensive guide and operational matrix, see **[docs/REBRANDING.md](docs/REBRANDING.md)**.
+
+#### Deterministic Cross-Repository Parameter Contracts (Law U14):
+1. **RexOne Core (Rails API)**:
+   - Synchronizes `config/app_config.rb` default parameters (`RAILS_JWT_SECRET_KEY`, `SMTP_DOMAIN`, `FROM_EMAIL`, `S3_BUCKET`).
+   - Updates `docker-compose.yaml` (Production / Coolify) and `docker-compose.dev.yaml` with kebab-case container slugs (`prod-<kebab>-api`, `prod-<kebab>-waka`, `prod-<kebab>-media`, `prod-<kebab>-db`, `<kebab>-garage`).
+   - Synchronizes PostgreSQL database names (`<snake>_production`, `<snake>_development`) and Garage S3 bucket names (`<kebab>`).
+   - Updates database backup scripts (`backup_db.sh`, `backup_garage.sh`, `dev_garage.sh`, `prod_garage_init.sh`).
+   - Updates checked-in `.env.example` templates with matching parameter examples.
+2. **RexOne Web (React SPA)**:
+   - Synchronizes `package.json` package name (`<kebab>-web`) and HTML application titles.
+   - Synchronizes branding locales (`src/locales/en.json`, `src/locales/my.json`).
+   - Updates public brand assets (`public/brand/logo.png`, `public/favicon.png`) and image alt tokens (`src/assets/index.ts`).
+   - Synchronizes `scripts/uat.sh` and `scripts/prod.sh` target API hostnames (`https://api.domain.com`, `https://uat.api.domain.com`).
+   - Synchronizes checked-in `.env.example` templates.
+3. **RexOne Mobile (Flutter Client)**:
+   - Updates application display names dynamically in Android (`AndroidManifest.xml` via `appName`) and iOS (`Info.plist` via `CFBundleDisplayName`).
+   - Synchronizes native application ID and iOS bundle ID (`com.brand.app` and `com.brand.app.uat`).
+   - Synchronizes release keystore filenames (`<flat>-upload-keystore.jks`) in `build.gradle.kts`.
+   - Synchronizes Dart `pubspec.yaml` package name and updates **all package imports** across `lib/`, `test/`, and `integration_test/`.
+   - Synchronizes parameter contracts inside `./scripts/release_android.sh`, `./scripts/release_ios.sh`, and `.github/workflows/build_android.yaml`.
+   - Generates native launcher icons across all screen densities from source logo via `flutter_launcher_icons`.
+4. **Secret Isolation Protocol (Rule 5 & Law U16)**:
+   - Automation **NEVER** touches live gitignored `.env` files (`.env`, `.env.dev`, `.env.prod`, `.env.uat`).
+   - Product creators apply live secret values manually using synchronized `.env.example` reference files.
 
 ---
 

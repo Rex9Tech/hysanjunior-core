@@ -4,25 +4,25 @@
     "name": "Pulse Flow",
     "slug": "pulse-flow",
     "shortName": "PulseFlow",
-    "description": "Unified Streamlining Platform",
-    "company": "Rex9",
-    "author": "Rex (Htet Naing)",
-    "supportEmail": "support@pulseflow.com",
-    "website": "https://rex9.me",
+    "description": "Hysan Junior",
+    "company": "Hysan",
+    "author": "Hysan ",
+    "supportEmail": "support@hysanjunior.com",
+    "website": "https://hysanjunior.com",
     "logoPath": "brand/logo.png"
   },
   "mobile": {
-    "appName": "Pulse Flow Mobile",
-    "packageName": "com.rex9.pulseflow",
-    "bundleId": "com.rex9.pulseflow"
+    "appName": "Hysan Junior Mobile",
+    "packageName": "com.hysan.hysanjunior",
+    "bundleId": "com.hysan.hysanjunior"
   },
   "web": {
-    "appName": "Pulse Flow Web",
-    "title": "Pulse Flow — Product Foundation",
-    "shortName": "PulseFlow"
+    "appName": "Hysan Junior Web",
+    "title": "Hysan Junior",
+    "shortName": "Hysan Junior"
   },
   "core": {
-    "appName": "Pulse Flow Core",
-    "mailerSender": "support@pulseflow.com"
+    "appName": "Hysan Junior Core",
+    "mailerSender": "support@hysanjunior.com"
   }
 }

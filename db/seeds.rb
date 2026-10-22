@@ -43,6 +43,24 @@ default_user = Iam::Role.create!(
   system: true
 )
 
+Iam::Role.create!(
+  name: IamConstants::Role::STUDENT,
+  description: SeedConstants::RoleDescriptions::STUDENT,
+  system: true
+)
+
+Iam::Role.create!(
+  name: IamConstants::Role::PARENT,
+  description: SeedConstants::RoleDescriptions::PARENT,
+  system: true
+)
+
+Iam::Role.create!(
+  name: IamConstants::Role::TEACHER_ADMIN,
+  description: SeedConstants::RoleDescriptions::TEACHER_ADMIN,
+  system: true
+)
+
 puts "✅ #{Iam::Role.count} roles created"
 
 # ===== ASSIGN PERMISSIONS TO ROLES =====
@@ -114,6 +132,8 @@ initial_version.assign_attributes(
 initial_version.save!
 puts "✅ Client version #{initial_version.number} (#{initial_version.status}) ready"
 
+load Rails.root.join("db/seeds/campuses.rb")
+
 puts "✅ Seeding complete!"
 
 puts "\n📋 Summary:"
@@ -124,3 +144,4 @@ puts "  - #{Iam::UserRole.count} user-role assignments"
 puts "  - #{User.count} users"
 puts "  - #{Ai::Profile.count} AI profiles"
 puts "  - #{Client::Version.count} client versions"
+puts "  - #{Campus.kept.count} campuses"

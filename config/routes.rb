@@ -14,9 +14,14 @@ Rails.application.routes.draw do
   get "up", to: "rails/health#show", as: :rails_health_check
   # get "up" => "rails/health#show", as: :rails_health_check
 
-  # ===== API DOCS - RSWAG =====
-  mount Rswag::Ui::Engine => "/api-docs"
-  mount Rswag::Api::Engine => "/api-docs"
+  # ===== API DOCS - RSWAG (Admin HTTP Basic Auth Protected) =====
+  mount Rack::Auth::Basic.new(Rswag::Ui::Engine, "Admin Area") { |u, p|
+    AdminAuthService.authenticate(username: u, password: p).present?
+  } => "/admin/api-docs"
+
+  mount Rack::Auth::Basic.new(Rswag::Api::Engine, "Admin Area") { |u, p|
+    AdminAuthService.authenticate(username: u, password: p).present?
+  } => "/admin/api-docs"
 
   # ===== RAILS PULSE PERFORMANCE =====
   mount RailsPulse::Engine => "/admin/pulse"
@@ -266,6 +271,34 @@ Rails.application.routes.draw do
       resources :accesses, only: %i[index show create update destroy]
 
       resources :feedbacks, only: %i[index show update destroy]
+
+      resources :lessons do
+        member do
+          post :undiscard
+          post :create_word_families
+          post :create_story_order
+          post :create_build_the_sentences
+        end
+      end
+
+      resources :campuses do
+        member do
+          post :undiscard
+          get :students
+        end
+      end
+
+      resources :school_classes do
+        member do
+          post :undiscard
+        end
+      end
+
+      resources :campus_memberships, only: %i[index show create destroy]
+      resources :class_assignments, only: %i[index create destroy]
+      resources :class_enrollments, only: %i[index show create update destroy]
+      resources :class_homeworks, only: %i[index show create update destroy]
+      resources :parent_students, only: %i[index create destroy]
 
       namespace :client do
         resources :versions, only: %i[index show create update] do

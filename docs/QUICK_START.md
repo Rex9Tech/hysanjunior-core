@@ -34,6 +34,7 @@ cp .env.example .env
 ```
 
 ### 🛡️ Pre-Commit Safety Guardrail
+
 **Running `./scripts/install_pre_commit.sh` is mandatory before making any commits.** It installs local Git hooks that automatically prevent committing unignored `.env` files, high-entropy cloud keys (Stripe, AWS, OpenAI, Google), unlocalized strings, and RuboCop lint violations. See [Security Architecture](SECURITY.md) for full details.
 
 ## Configure Core
@@ -106,20 +107,31 @@ Garage and the media worker are not required when the application uses another f
 
 Start the database before the API when running scripts individually. Core runs `db:prepare` when the API starts; wait until the API and database are ready before seeding.
 
-## 3. Seed IAM and development users
+## 3. Seed IAM and Super Admin
 
 ```bash
+# 1. Seed default IAM roles, permissions, AI profiles, and initial client version
 docker compose -f docker-compose.dev.yaml exec api bin/rails db:seed
+
+# 2. Seed the initial Super Admin account manually
+./scripts/seed_super_admin.sh
 ```
 
-The seed task creates default roles, permissions, assignments, and development accounts. Read the seed output for the current local credentials and replace development credentials before any non-local deployment.
+> [!TIP]
+> Running `./scripts/seed_super_admin.sh` without arguments automatically reads `SEED_SUPER_ADMIN_EMAIL` and `SEED_SUPER_ADMIN_PASSWORD` from your `.env` file. You can also pass explicit credentials:
+>
+> ```bash
+> ./scripts/seed_super_admin.sh admin@example.com my_password [optional_username]
+> ```
+>
+> Once seeded, log in to the administrative dashboards (`/admin`, `/admin/pulse`, `/admin/red`, `/admin/api-docs`) using your credentials.
 
 ## 4. Verify the API
 
 Open:
 
 - Health check: [http://localhost:3000/up](http://localhost:3000/up)
-- OpenAPI UI: [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+- OpenAPI UI: [http://localhost:3000/admin/api-docs](http://localhost:3000/admin/api-docs)
 - Super-admin record dashboard: [http://localhost:3000/admin](http://localhost:3000/admin)
 
 A successful `/up` response confirms the API process is reachable. It does not by itself verify every optional provider.
@@ -161,7 +173,7 @@ After Core and Web are connected, a useful first evaluation is:
 3. Confirm navigation reflects the account's IAM permissions.
 4. Upload a supported asset.
 5. Observe its queued/processing state and real-time completion notification while `media` is running.
-6. Inspect the API contract at `/api-docs` and the resulting record in the permitted administration interface.
+6. Inspect the API contract at `/admin/api-docs` and the resulting record in the permitted administration interface.
 
 This verifies authentication, IAM, API transport, PostgreSQL, Garage, Solid Queue, Action Cable, and the Web operation lifecycle in one connected workflow.
 
@@ -222,6 +234,7 @@ Stripe, Brevo, OneSignal, Google, DeepSeek, Cloudinary, Nova, and Azure require 
 ## Next reading
 
 - [Foundation capabilities](FOUNDATION.md)
+- [Ecosystem rebranding guide](REBRANDING.md)
 - [Ecosystem architecture](../ECOSYSTEM.md)
 - [Development law](../LAW.md)
 - [Production deployment](DEPLOYMENT.md)

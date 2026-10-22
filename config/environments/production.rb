@@ -36,21 +36,19 @@ Rails.application.configure do
   # config.action_cable.mount_path = nil
   # config.action_cable.url = "wss://example.com/cable"
   # Action Cable allowed origins in production (Secure: NO localhost in production by default)
-  cable_origins = [
-    %r{\Ahttps?://([a-zA-Z0-9-]+\.)*rex9\.me(:\d+)?\z}
-  ]
+  cable_origins = []
 
-  if ENV["PRODUCT_DOMAIN"].present?
-    p_domain = ENV["PRODUCT_DOMAIN"].strip
+  if AppConfig::PRODUCT_DOMAIN.present?
+    p_domain = AppConfig::PRODUCT_DOMAIN
     cable_origins << %r{\Ahttps?://([a-zA-Z0-9-]+\.)*#{Regexp.escape(p_domain)}(:\d+)?\z}
   end
 
-  cable_origins << ENV["RAILS_CLIENT_BASE_URL"].strip if ENV["RAILS_CLIENT_BASE_URL"].present?
-  if ENV["CORS_ORIGINS"].present?
-    cable_origins.concat(ENV["CORS_ORIGINS"].split(",").map(&:strip).reject(&:empty?))
+  cable_origins << AppConfig::CLIENT_BASE_URL if AppConfig::CLIENT_BASE_URL.present?
+  if AppConfig::CORS_ORIGINS.any?
+    cable_origins.concat(AppConfig::CORS_ORIGINS)
   end
 
-  if ENV["CORS_ALLOW_LOCALHOST"] == "true"
+  if AppConfig::CORS_ALLOW_LOCALHOST
     cable_origins << %r{\Ahttp://localhost(:\d+)?\z}
     cable_origins << %r{\Ahttp://127\.0\.0\.1(:\d+)?\z}
   end
@@ -140,31 +138,53 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  allowed_hosts = [
-    "rex9.me",          # Allow requests from rex9.me showcase demo
-    /.+\.rex9\.me/      # Allow requests from subdomains like `api.rexone.rex9.me`
-  ]
+  allowed_hosts = []
 
-  # Allow localhost in production only if explicitly opted in
-  if ENV["CORS_ALLOW_LOCALHOST"] == "true"
-    allowed_hosts << /localhost(:\d+)?/
-  end
-
-  if ENV["PRODUCT_DOMAIN"].present?
-    p_domain = ENV["PRODUCT_DOMAIN"].strip
+  if AppConfig::PRODUCT_DOMAIN.present?
+    p_domain = AppConfig::PRODUCT_DOMAIN
     allowed_hosts << p_domain
     allowed_hosts << /.+\.#{Regexp.escape(p_domain)}/
   end
 
-  if ENV["RAILS_SERVER_BASE_URL"].present?
+  if AppConfig::SERVER_BASE_URL.present?
     begin
-      server_host = URI.parse(ENV["RAILS_SERVER_BASE_URL"]).host
+      server_host = URI.parse(AppConfig::SERVER_BASE_URL).host
       allowed_hosts << server_host if server_host.present?
     rescue URI::InvalidURIError
     end
   end
 
-  config.hosts = allowed_hosts
+  if AppConfig::CLIENT_BASE_URL.present?
+    begin
+      client_host = URI.parse(AppConfig::CLIENT_BASE_URL).host
+      allowed_hosts << client_host if client_host.present?
+    rescue URI::InvalidURIError
+    end
+  end
+
+  if AppConfig::RAILS_SERVER_HOST.present? && AppConfig::RAILS_SERVER_HOST != "localhost"
+    allowed_hosts << AppConfig::RAILS_SERVER_HOST
+  end
+
+  AppConfig::CORS_ORIGINS.each do |origin|
+    begin
+      origin_host = URI.parse(origin).host
+      allowed_hosts << origin_host if origin_host.present?
+    rescue URI::InvalidURIError
+    end
+  end
+
+  # Allow localhost in production only if explicitly opted in
+  if AppConfig::CORS_ALLOW_LOCALHOST
+    allowed_hosts << /localhost(:\d+)?/
+    allowed_hosts << /127\.0\.0\.1(:\d+)?/
+  end
+
+  if allowed_hosts.any?
+    config.hosts = allowed_hosts.uniq
+  else
+    config.hosts.clear
+  end
 
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }

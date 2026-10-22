@@ -41,7 +41,16 @@ end
      - `discarded_by_id`
      - `undiscarded_by_id`
    - Timestamps: `undiscarded_at` (in addition to `discarded_at`).
-4. **Scope of this Document**:
+4. **Agile Standard Migrations & Model Validations Doctrine (LAW C6)**:
+   - **Clean Standard Migrations**: Migrations strictly define column types, nullability, foreign keys, and clean query and unique indexes.
+   - **Single-Field & Composite Join Unique Indexes Permitted & Standard**:
+     - Single-field natural unique keys (`ai_profiles.key`, `coupons.code`, `payment_products.code`, `assets.url`, `iam_roles.name`, `iam_permissions.name`, `client_versions.number`, `client_versions.ios_build_number`, `client_versions.android_build_number`) enforce physical table-wide uniqueness at the database level.
+     - Composite join/association unique keys (`iam_role_permissions [role_id, permission_id]`, `iam_user_roles [user_id, role_id]`, `iam_permissions [resource, action]`, `client_user_versions [user_id, platform]`) are standard and prevent duplicate join relations in the database.
+     - Complex domain entitlements (`accesses [user_id, product_id]`, `user_notifications [user_id, operation_id]`) utilize clean standard query indexes with lifecycle uniqueness managed in Rails models.
+   - **Zero Raw SQL Partial Indexes**: Raw SQL `WHERE` clauses (e.g. `where: "discarded_at IS NULL"`) in migrations are prohibited.
+   - **Zero Sequence/Reordering Collisions**: Multi-column sequence unique indexes on ordering/positional columns are banned to prevent drag-and-drop / re-indexing deadlocks.
+   - **Model-Led Business Validation Authority**: Model validations enforce uniqueness across all records (including discarded/recycled records). This ensures administrators are immediately alerted if an entity already exists in the Recycle Bin ("has already been taken"), prompting them to restore it (`undiscard`) or permanently purge it from the bin (`destroy`) before creating a duplicate.
+5. **Scope of this Document**:
    - Covers only **Application Records** representing business entities.
    - **Explicitly Excluded**: Background engine & telemetry tables (Solid Queue, Solid Cable, Solid Cache, Rails Pulse, and Rails Error Dashboard). See [Excluded Infrastructure Tables](#excluded-infrastructure-tables).
 
@@ -77,6 +86,36 @@ erDiagram
   users ||--o{ feedbacks : "submits"
   users ||--o{ client_logs : "originates"
 
+  lessons {
+    uuid id PK
+    string title
+    integer level
+    string unit
+    string status
+    jsonb story_order
+    jsonb build_the_sentences
+  }
+  lessons ||--o| assets : "song assetable"
+  lessons ||--o{ vocabularies : "lesson list (choice_id null)"
+  lessons ||--o{ word_families : "nested"
+  lessons ||--o{ questions : "questionable"
+  lessons ||--o{ sort_health_choices : "healthy-choice groups"
+  sort_health_choices ||--o{ vocabularies : "group items"
+  questions ||--o{ question_options : "options"
+  question_options ||--o| assets : "image assetable"
+
+  campuses ||--o{ school_classes : "contains"
+  campuses ||--o{ campus_memberships : "teachers"
+  users ||--o{ campus_memberships : "teacher_admin"
+  school_classes ||--o{ class_assignments : "teachers"
+  users ||--o{ class_assignments : "teacher"
+  school_classes ||--o{ class_enrollments : "enrolls"
+  users ||--o{ class_enrollments : "student"
+  school_classes ||--o{ class_homeworks : "assigns"
+  lessons ||--o{ class_homeworks : "source"
+  users ||--o{ parent_students : "parent"
+  users ||--o{ parent_students : "student"
+
   users ||--o{ user_notifications : "receives"
   notifications ||--o{ user_notifications : "templated_by"
 
@@ -88,6 +127,7 @@ erDiagram
   users ||--o{ assets : "assetable (polymorphic)"
   payment_products ||--o{ assets : "assetable (polymorphic)"
   chat_messages ||--o{ assets : "assetable (polymorphic)"
+  vocabularies ||--o| assets : "image assetable"
 ```
 
 ---
@@ -160,12 +200,12 @@ erDiagram
 ### 3.2. `iam_roles`
 
 - **Model**: [`Iam::Role`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/iam/role.rb)
-- **Description**: RBAC roles (e.g. `super_admin`, `admin`, `user`).
+- **Description**: RBAC roles (e.g. `super_admin`, `admin`, `user`, `student`, `parent`, `teacher_admin`).
 
 | Column              | Type       | Nullable | Default             | Description / Notes                             |
 | :------------------ | :--------- | :------: | :------------------ | :---------------------------------------------- |
 | `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                     |
-| `name`              | `string`   |    ❌    | —                   | Role name (e.g. `super_admin`, `admin`, `user`) |
+| `name`              | `string`   |    ❌    | —                   | Role name (e.g. `super_admin`, `admin`, `user`, `student`, `parent`, `teacher_admin`) |
 | `description`       | `text`     |    ✔️    | `NULL`              | Human-readable role description                 |
 | `system`            | `boolean`  |    ✔️    | `false`             | Protected system role flag                      |
 | `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                               |
@@ -179,7 +219,7 @@ erDiagram
 
 **Indexes**:
 
-- `index_iam_roles_on_name` (UNIQUE: `name`)
+- `index_iam_roles_on_name` (`name`, unique)
 - `index_iam_roles_on_discarded_at` (`discarded_at`)
 - Auditing indexes on `created_by_id`, `updated_by_id`, `discarded_by_id`, `undiscarded_by_id`.
 
@@ -195,7 +235,7 @@ erDiagram
 | `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `name`              | `string`   |    ❌    | —                   | Unique identifier (e.g. `read_users`, `create_payments`)                                                                                                                                                                                                                                                                                                                                                                  |
 | `action`            | `string`   |    ❌    | —                   | Enum: `read`, `create`, `update`, `delete`                                                                                                                                                                                                                                                                                                                                                                                |
-| `resource`          | `string`   |    ❌    | —                   | Enum of 23 canonical resources (`users`, `accesses`, `assets`, `notifications`, `feedbacks`, `analytics`, `speech`, `ai_profiles`, `ai_runs`, `chat_rooms`, `chat_messages`, `client_logs`, `client_versions`, `client_user_versions`, `iam_roles`, `iam_permissions`, `iam_user_roles`, `payment_products`, `payment_payments`, `payment_subscriptions`, `payment_purchases`, `payment_coupons`, `payment_user_coupons`) |
+| `resource`          | `string`   |    ❌    | —                   | Enum of canonical resources including `users`, `accesses`, `assets`, `notifications`, `user_notifications`, `feedbacks`, `lessons`, `campuses`, `school_classes`, `campus_memberships`, `class_assignments`, `class_enrollments`, `class_homeworks`, `parent_students`, `analytics`, `speech`, `ai_profiles`, `ai_runs`, `chat_rooms`, `chat_messages`, `client_logs`, `client_versions`, `client_user_versions`, `iam_roles`, `iam_permissions`, `iam_user_roles`, `payment_products`, `payment_payments`, `payment_subscriptions`, `payment_purchases`, `payment_coupons`, `payment_user_coupons` |
 | `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -207,8 +247,8 @@ erDiagram
 
 **Indexes**:
 
-- `index_iam_permissions_on_name` (UNIQUE: `name`)
-- `index_iam_permissions_on_resource_and_action` (UNIQUE: `resource`, `action`)
+- `index_iam_permissions_on_name` (`name`, unique)
+- `index_iam_permissions_on_resource_and_action` (`resource`, `action`, unique)
 - Auditing indexes on `created_by_id`, `updated_by_id`, `discarded_by_id`, `undiscarded_by_id`, `discarded_at`.
 
 **Mutation invariants**:
@@ -239,7 +279,7 @@ erDiagram
 
 **Indexes & Foreign Keys**:
 
-- `index_iam_user_roles_on_user_id_and_role_id` (UNIQUE: `user_id`, `role_id`)
+- `index_iam_user_roles_on_user_id_and_role_id` (`user_id`, `role_id`, unique)
 - `index_iam_user_roles_on_role_id` (`role_id`)
 - `index_iam_user_roles_on_user_id` (`user_id`)
 - FKs to `users(id)` and `iam_roles(id)`.
@@ -266,7 +306,7 @@ erDiagram
 | `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                 |
 | `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                |
 | `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder               |
-| `undiscarded_by_id` | `uuid`     |    ✔     | `NULL`              | Auditing: Restorer                |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                |
 | `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp             |
 | `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp |
 | `created_at`        | `datetime` |    ❌    | —                   | Timestamp                         |
@@ -274,7 +314,7 @@ erDiagram
 
 **Indexes & Foreign Keys**:
 
-- `index_iam_role_permissions_on_role_id_and_permission_id` (UNIQUE: `role_id`, `permission_id`)
+- `index_iam_role_permissions_on_role_id_and_permission_id` (`role_id`, `permission_id`, unique)
 - `index_iam_role_permissions_on_role_id` (`role_id`)
 - `index_iam_role_permissions_on_permission_id` (`permission_id`)
 - FKs to `iam_roles(id)` and `iam_permissions(id)`.
@@ -313,11 +353,11 @@ erDiagram
 
 **Indexes**:
 
-- `index_payment_products_on_code` (UNIQUE: `code`)
-- `index_payment_products_on_stripe_product_id` (UNIQUE: `stripe_product_id`)
-- `index_payment_products_on_stripe_price_id` (UNIQUE: `stripe_price_id`)
-- `index_payment_products_on_google_play_product_id` (UNIQUE: `google_play_product_id`)
-- `index_payment_products_on_app_store_product_id` (UNIQUE: `app_store_product_id`)
+- `index_payment_products_on_code` (`code`, unique)
+- `index_payment_products_on_stripe_product_id` (`stripe_product_id`, unique)
+- `index_payment_products_on_stripe_price_id` (`stripe_price_id`, unique)
+- `index_payment_products_on_google_play_product_id` (`google_play_product_id`, unique)
+- `index_payment_products_on_app_store_product_id` (`app_store_product_id`, unique)
 - `index_payment_products_on_discarded_at` (`discarded_at`)
 
 ---
@@ -506,7 +546,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 **Indexes & Foreign Keys**:
 
-- `index_coupons_on_code` (UNIQUE: `code`)
+- `index_coupons_on_code` (`code`, unique)
 - `index_coupons_on_provider_coupon_id` (`provider_coupon_id`)
 - `index_coupons_on_provider` (`provider`)
 - `index_coupons_on_referrer_id` (`referrer_id`)
@@ -606,7 +646,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 **Indexes & Foreign Keys**:
 
-- `index_accesses_on_user_id_and_product_id` (UNIQUE: `user_id`, `product_id`)
+- `index_accesses_on_user_id_and_product_id` (`user_id`, `product_id`)
 - `index_accesses_on_user_id_and_status` (`user_id`, `status`)
 - `index_accesses_on_user_id` (`user_id`)
 - `index_accesses_on_product_id` (`product_id`)
@@ -805,7 +845,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 **Indexes**:
 
-- `index_assets_on_url` (UNIQUE: `url`)
+- `index_assets_on_url` (`url`, unique)
 - `index_assets_on_assetable_type_and_assetable_id` (`assetable_type`, `assetable_id`)
 - `index_assets_on_parent_asset_id` (`parent_asset_id`)
 - `index_assets_on_name` (`name`)
@@ -879,9 +919,304 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 ---
 
-## 9. Diagnostics & Logging
+## 9. Content Management
 
-### 9.1. `client_logs`
+### 9.1. `lessons`
+
+- **Model**: [`Lesson`](app/models/lesson.rb)
+- **Description**: Admin CMS lesson catalog. Single-table records with title, numeric level, unit label, publish status, `story_order`, and `build_the_sentences`. Admin-only via `/v1/admin/lessons`. Soft-deleted with Discard. Nested **vocabularies** (lesson list), **word_families**, polymorphic **questions** (MCQ), and **sort_health_choices** (healthy-choice groups whose items reuse `vocabularies` via `sort_health_choice_id`). Publishing also requires ≥1 ready MCQ and ≥1 ready sort-health group. Create/update nests those lists (full-list sync). Async AI generate endpoints (`create_word_families`, `create_story_order`, `create_build_the_sentences`) persist into the matching fields when the job completes.
+
+| Column              | Type       | Nullable | Default             | Description / Notes                                      |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------------------------- |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                              |
+| `title`             | `string`   |    ❌    | —                   | Lesson title (searchable)                                |
+| `level`             | `integer`  |    ❌    | —                   | Numeric level (`>= 1`, filterable)                       |
+| `unit`              | `string`   |    ❌    | —                   | Unit label (filterable + searchable)                     |
+| `status`            | `string`   |    ❌    | `"draft"`           | Enum: `draft`, `published`, `unpublished`                |
+| `story_order`       | `jsonb`    |    ❌    | `[]`                | Ordered array of sentence strings for sequencing practice |
+| `build_the_sentences` | `jsonb`  |    ❌    | `[]`                | Array of `{vocab, sentence}` pairs (one per vocabulary) |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                                        |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                                       |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                                      |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                                       |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                                    |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp                        |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                                          |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                                          |
+
+**Indexes & Foreign Keys**:
+
+- `index_lessons_on_title` (`title`)
+- `index_lessons_on_level` (`level`)
+- `index_lessons_on_unit` (`unit`)
+- `index_lessons_on_status` (`status`)
+- `index_lessons_on_discarded_at` (`discarded_at`)
+- `index_lessons_on_level_and_unit` (`level`, `unit`)
+- FKs: audit columns → `users(id)`.
+- Polymorphic song: `assets.assetable_type = 'Lesson'` + `assets.assetable_id` + `format = audio` (+ SRT children).
+- Polymorphic story: same `assetable` with `format = video` (+ SRT children; optional thumbnail child).
+- Nested lists: `vocabularies` (§9.2), `word_families` (§9.3), `questions` (§9.4), `sort_health_choices` (§9.6).
+
+### 9.2. `vocabularies`
+
+- **Model**: [`Vocabulary`](app/models/vocabulary.rb)
+- **Description**: Ordered vocabulary rows. When `sort_health_choice_id` is null, row belongs to the lesson vocab list (`lesson.vocabularies[]`). When set, row is a healthy-choice item under that group (not returned in the lesson vocab list). Image via pick `image_asset_id` or multipart `image` — no `image_url` column.
+
+| Column              | Type       | Nullable | Default             | Description / Notes                         |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------------ |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                 |
+| `lesson_id`         | `uuid`     |    ❌    | —                   | FK → `lessons`                              |
+| `sort_health_choice_id` | `uuid` |    ✔️    | `NULL`              | FK → `sort_health_choices`; null = lesson list |
+| `vocab`             | `string`   |    ❌    | —                   | Vocabulary text                             |
+| `vowel_symbol`      | `string`   |    ✔️    | `NULL`              | Optional vowel / diacritic symbol            |
+| `position`          | `integer`  |    ❌    | `0`                 | List order (no unique composite index)      |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                           |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                          |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                         |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                          |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                       |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp           |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+
+**Indexes & Foreign Keys**:
+
+- `index_vocabularies_on_lesson_id` (`lesson_id`)
+- `index_vocabularies_on_sort_health_choice_id` (`sort_health_choice_id`)
+- `index_vocabularies_on_position` (`position`)
+- `index_vocabularies_on_lesson_id_and_position` (`lesson_id`, `position`) — non-unique
+- `index_vocabularies_on_discarded_at` (`discarded_at`)
+- FKs: `lesson_id` → `lessons(id)`; `sort_health_choice_id` → `sort_health_choices(id)`; audit columns → `users(id)`.
+- Polymorphic image: `assets.assetable_type = 'Vocabulary'` + `format = image`.
+
+### 9.3. `word_families`
+
+- **Model**: [`WordFamily`](app/models/word_family.rb)
+- **Description**: Ordered rhyme/ending groups for a lesson (`pattern` like `..et`, `words` string array). Synced as nested `lesson.word_families[]` on create/update. AI `create_word_families` overwrites and persists families on the lesson, then broadcasts the saved rows (with `id`) over socket.
+
+| Column              | Type       | Nullable | Default             | Description / Notes                    |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------- |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                            |
+| `lesson_id`         | `uuid`     |    ❌    | —                   | FK → `lessons`                         |
+| `pattern`           | `string`   |    ❌    | —                   | Family pattern (e.g. `..et`)           |
+| `words`             | `jsonb`    |    ❌    | `[]`                | Array of word strings                  |
+| `position`          | `integer`  |    ❌    | `0`                 | List order (non-unique composite)      |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                      |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                     |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                    |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                     |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                  |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp      |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+
+**Indexes & Foreign Keys**:
+
+- `index_word_families_on_lesson_id` (`lesson_id`)
+- `index_word_families_on_position` (`position`)
+- `index_word_families_on_lesson_id_and_position` (`lesson_id`, `position`) — non-unique
+- `index_word_families_on_discarded_at` (`discarded_at`)
+- FKs: `lesson_id` → `lessons(id)`; audit columns → `users(id)`.
+
+### 9.4. `questions`
+
+- **Model**: [`Question`](app/models/question.rb)
+- **Description**: Reusable polymorphic multiple-choice questions (`questionable_type` / `questionable_id`). First host is `Lesson`. Synced as nested `lesson.questions[]` on create/update (array order = `position`; omitted ids destroyed). Kind defaults to `multiple_choice`. Ready when title present, ≥2 options with text, and ≥1 `correct` option (multi-correct allowed).
+
+| Column               | Type       | Nullable | Default             | Description / Notes                         |
+| :------------------- | :--------- | :------: | :------------------ | :------------------------------------------ |
+| `id`                 | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                 |
+| `questionable_type`  | `string`   |    ❌    | —                   | Polymorphic host class                      |
+| `questionable_id`    | `uuid`     |    ❌    | —                   | Polymorphic host id                         |
+| `kind`               | `string`   |    ❌    | `"multiple_choice"` | Question kind enum                          |
+| `title`              | `string`   |    ❌    | —                   | Question prompt                             |
+| `position`           | `integer`  |    ❌    | `0`                 | List order                                  |
+| `created_by_id`      | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                           |
+| `updated_by_id`      | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                          |
+| `discarded_by_id`    | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                         |
+| `undiscarded_by_id`  | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                          |
+| `discarded_at`       | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                       |
+| `undiscarded_at`     | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp           |
+| `created_at`         | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+| `updated_at`         | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+
+**Indexes & Foreign Keys**:
+
+- `index_questions_on_questionable` (`questionable_type`, `questionable_id`)
+- `index_questions_on_questionable_and_position` (`questionable_type`, `questionable_id`, `position`) — non-unique
+- `index_questions_on_position` / `kind` / `discarded_at`
+- FKs: audit columns → `users(id)`.
+
+### 9.5. `question_options`
+
+- **Model**: [`QuestionOption`](app/models/question_option.rb)
+- **Description**: Options for a question. Nested under `questions[].options[]`. `text` required; `correct` boolean (one or more may be true). Optional image via pick `image_asset_id` or multipart `image` (`assets.assetable = QuestionOption`).
+
+| Column              | Type       | Nullable | Default             | Description / Notes                    |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------- |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                            |
+| `question_id`       | `uuid`     |    ❌    | —                   | FK → `questions`                       |
+| `text`              | `string`   |    ❌    | —                   | Option label                           |
+| `correct`           | `boolean`  |    ❌    | `false`             | Whether this option is correct         |
+| `position`          | `integer`  |    ❌    | `0`                 | List order                             |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                      |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                     |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                    |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                     |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                  |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp      |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+
+**Indexes & Foreign Keys**:
+
+- `index_question_options_on_question_id` (`question_id`)
+- `index_question_options_on_question_id_and_position` (`question_id`, `position`) — non-unique
+- `index_question_options_on_position` / `discarded_at`
+- FKs: `question_id` → `questions(id)`; audit columns → `users(id)`.
+- Polymorphic image: `assets.assetable_type = 'QuestionOption'` + `format = image`.
+
+### 9.6. `sort_health_choices`
+
+- **Model**: [`SortHealthChoice`](app/models/sort_health_choice.rb)
+- **Description**: Healthy-choice sort groups for a lesson (`label` + nested vocab items). Synced as `lesson.sort_health_choices[]`. Items are `Vocabulary` rows with `sort_health_choice_id` set (reuse vocabularies table; not part of lesson vocab list). Ready when label present and ≥1 item with vocab.
+
+| Column              | Type       | Nullable | Default             | Description / Notes                    |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------- |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                            |
+| `lesson_id`         | `uuid`     |    ❌    | —                   | FK → `lessons`                         |
+| `label`             | `string`   |    ❌    | —                   | Group label (e.g. Fruits)              |
+| `position`          | `integer`  |    ❌    | `0`                 | List order                             |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                      |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                     |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                    |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                     |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                  |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp      |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                        |
+
+**Indexes & Foreign Keys**:
+
+- `index_sort_health_choices_on_lesson_id` (`lesson_id`)
+- `index_sort_health_choices_on_lesson_id_and_position` (`lesson_id`, `position`) — non-unique
+- `index_sort_health_choices_on_position` / `discarded_at`
+- FKs: `lesson_id` → `lessons(id)`; audit columns → `users(id)`.
+
+### 9.7. `campuses`
+
+- **Model**: [`Campus`](app/models/campus.rb)
+- **Description**: Admin CMS campus (school site). Has many `school_classes` and `campus_memberships` (teachers only). Optional campus photo via polymorphic `assets` (`thumbnail`). Student roster is derived via class enrollments. Soft-deleted with Discard.
+
+| Column              | Type       | Nullable | Default             | Description / Notes                         |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------------------ |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                                 |
+| `name`              | `string`   |    ❌    | —                   | Campus name (searchable)                    |
+| `code`              | `string`   |    ✔️    | `NULL`              | Optional unique code (kept rows)            |
+| `phone`             | `string`   |    ✔️    | `NULL`              | Contact phone (searchable)                  |
+| `location`          | `text`     |    ✔️    | `NULL`              | Address / location text (searchable)        |
+| `status`            | `string`   |    ❌    | `"active"`          | Enum: `active`, `inactive`                  |
+| `created_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Creator                           |
+| `updated_by_id`     | `uuid`     |    ✔️    | `NULL`              | Auditing: Modifier                          |
+| `discarded_by_id`   | `uuid`     |    ✔️    | `NULL`              | Auditing: Discarder                         |
+| `undiscarded_by_id` | `uuid`     |    ✔️    | `NULL`              | Auditing: Restorer                          |
+| `discarded_at`      | `datetime` |    ✔️    | `NULL`              | Soft delete timestamp                       |
+| `undiscarded_at`    | `datetime` |    ✔️    | `NULL`              | Soft delete restoration timestamp           |
+| `created_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+| `updated_at`        | `datetime` |    ❌    | —                   | Timestamp (UTC)                             |
+
+**Indexes & Foreign Keys**: unique partial `code` where kept; indexes on `name`, `status`, `discarded_at`; audit FKs → `users(id)`.
+
+**Image**: optional `Asset` with `assetable_type = Campus`, `type = thumbnail`. API accepts `image_asset_id` on create/update; serializer returns `image_asset_id` + nested `image`.
+
+### 9.8. `school_classes`
+
+- **Model**: [`SchoolClass`](app/models/school_class.rb)
+- **Description**: Class/section under a campus, keyed by `level` (aligned with `Lesson.level`) and `name` (e.g. `A`). Unique `(campus_id, level, name)` among kept rows.
+
+| Column              | Type       | Nullable | Default             | Description / Notes              |
+| :------------------ | :--------- | :------: | :------------------ | :------------------------------- |
+| `id`                | `uuid`     |    ❌    | `gen_random_uuid()` | Primary Key                      |
+| `campus_id`         | `uuid`     |    ❌    | —                   | FK → `campuses`                  |
+| `name`              | `string`   |    ❌    | —                   | Class/section label              |
+| `level`             | `integer`  |    ❌    | —                   | Level (`>= 1`)                   |
+| `status`            | `string`   |    ❌    | `"active"`          | Enum: `active`, `inactive`       |
+| audit + discard cols | —         |    —     | —                   | Same pattern as campuses         |
+
+### 9.9. `campus_memberships`
+
+- **Model**: [`CampusMembership`](app/models/campus_membership.rb)
+- **Description**: Attaches a `teacher_admin` user to a campus. Parents are **not** campus members; they link via `parent_students` only.
+
+| Column       | Type     | Nullable | Default            | Description / Notes                          |
+| :----------- | :------- | :------: | :----------------- | :------------------------------------------- |
+| `id`         | `uuid`   |    ❌    | `gen_random_uuid()` | Primary Key                                 |
+| `campus_id`  | `uuid`   |    ❌    | —                  | FK → `campuses`                              |
+| `user_id`    | `uuid`   |    ❌    | —                  | FK → `users` (must have `teacher_admin` role)|
+| `kind`       | `string` |    ❌    | `"teacher_admin"`  | Enum: `teacher_admin`                        |
+| audit + discard cols | — | — | — | Same pattern as campuses |
+
+### 9.10. `class_assignments`
+
+- **Model**: [`ClassAssignment`](app/models/class_assignment.rb)
+- **Description**: Assigns a `teacher_admin` user to a `school_class`. Teacher must already hold a kept `campus_membership` on that class’s campus. A class may have multiple teachers; a teacher may be assigned to multiple classes.
+
+| Column            | Type   | Nullable | Default             | Description / Notes                                      |
+| :---------------- | :----- | :------: | :------------------ | :------------------------------------------------------- |
+| `id`              | `uuid` |    ❌    | `gen_random_uuid()` | Primary Key                                              |
+| `school_class_id` | `uuid` |    ❌    | —                   | FK → `school_classes`                                    |
+| `user_id`         | `uuid` |    ❌    | —                   | FK → `users` (`teacher_admin` + campus member)           |
+| audit + discard cols | —   | —        | —                   | Same pattern as campuses                                 |
+
+### 9.11. `class_enrollments`
+
+- **Model**: [`ClassEnrollment`](app/models/class_enrollment.rb)
+- **Description**: Places a `student` user into a `school_class`. One active enrollment per student (partial unique index). Campus student lists join `campus → school_classes → class_enrollments`.
+
+| Column            | Type     | Nullable | Default        | Description / Notes                         |
+| :---------------- | :------- | :------: | :------------- | :------------------------------------------ |
+| `id`              | `uuid`   |    ❌    | `gen_random_uuid()` | Primary Key                            |
+| `school_class_id` | `uuid`   |    ❌    | —              | FK → `school_classes`                       |
+| `user_id`         | `uuid`   |    ❌    | —              | FK → `users` (must have `student` role)     |
+| `status`          | `string` |    ❌    | `"active"`     | Enum: `active`, `left`                      |
+| audit + discard cols | —     | —        | —              | Same pattern as campuses                    |
+
+### 9.12. `class_homeworks`
+
+- **Model**: [`ClassHomework`](app/models/class_homework.rb)
+- **Description**: Class-level homework assignment. Picks a lesson, an ordered non-empty subset of the 11 catalog `activity_keys`, and optional `play_song_at_first` / `play_story_at_first` media intros. Same `(school_class_id, lesson_id)` may exist multiple times (no uniqueness). Active enrollments inherit the assignment; per-student completion is out of scope for v1.
+
+| Column                 | Type      | Nullable | Default             | Description / Notes                                                                 |
+| :--------------------- | :-------- | :------: | :------------------ | :---------------------------------------------------------------------------------- |
+| `id`                   | `uuid`    |    ❌    | `gen_random_uuid()` | Primary Key                                                                         |
+| `school_class_id`      | `uuid`    |    ❌    | —                   | FK → `school_classes`                                                               |
+| `lesson_id`            | `uuid`    |    ❌    | —                   | FK → `lessons`                                                                      |
+| `activity_keys`        | `jsonb`   |    ❌    | `[]`                | Ordered unique subset of `CampusConstants::HomeworkActivity::ALL` (11 keys)         |
+| `play_song_at_first`   | `boolean` |    ❌    | `false`             | Play lesson song before ordered activities                                          |
+| `play_story_at_first`  | `boolean` |    ❌    | `false`             | Play lesson story before ordered activities                                         |
+| `title`                | `string`  |    ✔️    | `NULL`              | Optional admin label                                                                |
+| `due_on`               | `date`    |    ✔️    | `NULL`              | Optional due date                                                                   |
+| audit + discard cols   | —         | —        | —                   | Same pattern as campuses                                                            |
+
+**Activity catalog keys**: `listen_and_tap`, `speak_and_record`, `trace_and_write`, `blend_the_sound`, `sort_the_word_families`, `read_a_story`, `sing_and_chant`, `put_the_story_in_order`, `build_the_sentences`, `made_good_choice`, `sort_healthy_choices`.
+
+### 9.13. `parent_students`
+
+- **Model**: [`ParentStudent`](app/models/parent_student.rb)
+- **Description**: Links a `parent` user to a `student` user. No campus membership. Parent’s campuses are derived through the student’s active class enrollment.
+
+| Column       | Type   | Nullable | Default             | Description / Notes                      |
+| :----------- | :----- | :------: | :------------------ | :--------------------------------------- |
+| `id`         | `uuid` |    ❌    | `gen_random_uuid()` | Primary Key                              |
+| `parent_id`  | `uuid` |    ❌    | —                   | FK → `users` (must have `parent` role)   |
+| `student_id` | `uuid` |    ❌    | —                   | FK → `users` (must have `student` role)  |
+| audit + discard cols | — | — | — | Same pattern as campuses |
+
+---
+
+## 10. Diagnostics & Logging
+
+### 10.1. `client_logs`
 
 - **Model**: [`Client::Log`](app/models/client/log.rb)
 - **Description**: Frontend client runtime error tracking, session snapshots, and resolution management. Clients send `app_version`; Core stores nullable `version_id`.
@@ -933,9 +1268,9 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 ---
 
-## 10. Multi-Channel Notifications
+## 11. Multi-Channel Notifications
 
-### 10.1. `notifications`
+### 11.1. `notifications`
 
 - **Model**: [`Notification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/notification.rb)
 - **Description**: Central multi-channel notification registry managing content, placeholders, counters, and provider template IDs for In-App (Socket), Push Notifications, and Email.
@@ -979,7 +1314,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 - `index_notifications_on_discarded_at` (`discarded_at`)
 - FKs to `users(id)` for `created_by_id`, `updated_by_id`, `discarded_by_id`, `undiscarded_by_id`.
 
-### 10.2. `user_notifications`
+### 11.2. `user_notifications`
 
 - **Model**: [`UserNotification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/user_notification.rb)
 - **Description**: Persistent historical inbox store for user in-app notifications dispatched via ActionCable WebSocket. Stores immutable snapshot text rendered at dispatch time.
@@ -1007,6 +1342,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 - `index_user_notifications_on_user_id_and_created_at` (`user_id`, `created_at`)
 - `index_user_notifications_on_user_id_and_read_at` (`user_id`, `read_at`)
+- `index_user_notifications_on_user_id_and_operation_id` (`user_id`, `operation_id`) — idempotency scoped uniqueness via model validation (`validates :operation_id, uniqueness: { scope: :user_id }, allow_nil: true`)
 - `index_user_notifications_on_discarded_at` (`discarded_at`)
 - FK to `users(id)` on delete cascade.
 - FK to `notifications(id)` on delete nullify.
@@ -1014,9 +1350,9 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 ---
 
-## 11. Versions & Installs
+## 12. Versions & Installs
 
-### 11.1. `client_versions`
+### 12.1. `client_versions`
 
 - **Model**: [`Client::Version`](app/models/client/version.rb)
 - **Description**: Global mobile/web marketing versions. Force-update is stored per row (`is_force_update`). Only one kept row may be `published` at a time: saving a published version yanks every other kept published row. Public check computes `update_required` (client behind the live version) and `must_update` (the live version is force and greater than the client). Store listing URLs live in env (`AppConfig::IOS_STORE_URL`, `AppConfig::ANDROID_STORE_URL`), not on this table.
@@ -1044,18 +1380,17 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 **Indexes & Foreign Keys**:
 
-- `index_client_versions_on_number_kept` (unique `number` where `discarded_at IS NULL`)
-- `index_client_versions_on_ios_build_number_kept` (unique `ios_build_number` where kept and not null)
-- `index_client_versions_on_android_build_number_kept` (unique `android_build_number` where kept and not null)
-- `index_client_versions_on_status` (`status`)
-- `index_client_versions_on_one_published_kept` (unique `status` where `status = 'published'` and `discarded_at IS NULL`)
+- `index_client_versions_on_number` (`number`, unique)
+- `index_client_versions_on_ios_build_number` (`ios_build_number`, unique)
+- `index_client_versions_on_android_build_number` (`android_build_number`, unique)
+- `index_client_versions_on_status` (`status`) — single published version enforced via `yank_other_published_versions` model callback
 - `index_client_versions_on_released_at` (`released_at`)
 - `index_client_versions_on_discarded_at` (`discarded_at`)
 - FKs: audit columns → `users(id)`.
 
 **Live scope** (public check): kept + `status = published` + (`released_at` is `NULL` or `<= now`). At most one kept published row exists. Versions are discard/undiscard only (non-destroyable). `install_count` is computed (kept `client_user_versions` rows whose `version_id` matches); it is not a stored column. Feedback and client-log ingest send `app_version` (marketing semver); Core links `version_id` when a kept `client_versions.number` matches (using `lookup_by_number` which resolves raw semver or `+build` suffix), otherwise null. Context and metadata retain the client's build number and full version details.
 
-### 11.2. `client_user_versions`
+### 12.2. `client_user_versions`
 
 - **Model**: [`Client::UserVersion`](app/models/client/user_version.rb)
 - **Description**: Current client snapshot per user per platform (`web` / `android` / `ios`). One kept row per pair; repeat checks update `number`, `build_number`, and `last_seen_at`. `User#latest_user_version` is the kept row with the newest `last_seen_at` (Administrate user show).
@@ -1080,7 +1415,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 **Indexes & Foreign Keys**:
 
-- `index_client_user_versions_on_user_id_and_platform_kept` (unique `[user_id, platform]` where `discarded_at IS NULL`)
+- `index_client_user_versions_on_user_id_and_platform` (`user_id`, `platform`, unique)
 - `index_client_user_versions_on_number` (`number`)
 - `index_client_user_versions_on_last_seen_at` (`last_seen_at`)
 - `index_client_user_versions_on_discarded_at` (`discarded_at`)
@@ -1090,7 +1425,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 ---
 
-## 12. Summary Matrix of Core Tables
+## 13. Summary Matrix of Core Tables
 
 | Table Name               | Model                                                                                                           | Domain         | Soft Deletion | Audited | Polymorphic Targets                  |
 | :----------------------- | :-------------------------------------------------------------------------------------------------------------- | :------------- | :-----------: | :-----: | :----------------------------------- |
@@ -1112,6 +1447,19 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 | `ai_runs`                | [`Ai::Run`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/ai/run.rb)                              | AI / Chat      |      ✔️       |   ✔️    | —                                    |
 | `assets`                 | [`Asset`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/asset.rb)                                 | Media          |      ✔️       |   ✔️    | Belongs to `assetable` (Polymorphic) |
 | `feedbacks`              | [`Feedback`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/feedback.rb)                           | Support        |      ✔️       |   ✔️    | —                                    |
+| `lessons`                | [`Lesson`](app/models/lesson.rb)                                                                                | CMS            |      ✔️       |   ✔️    | `assets`, `vocabularies`, `word_families`, `questions`, `sort_health_choices` |
+| `vocabularies`           | [`Vocabulary`](app/models/vocabulary.rb)                                                                        | CMS            |      ✔️       |   ✔️    | `assets` (image); optional `sort_health_choice` |
+| `word_families`          | [`WordFamily`](app/models/word_family.rb)                                                                       | CMS            |      ✔️       |   ✔️    | —                                    |
+| `questions`              | [`Question`](app/models/question.rb)                                                                            | CMS            |      ✔️       |   ✔️    | `question_options` (polymorphic host) |
+| `question_options`       | [`QuestionOption`](app/models/question_option.rb)                                                               | CMS            |      ✔️       |   ✔️    | `assets` (image)                     |
+| `sort_health_choices`    | [`SortHealthChoice`](app/models/sort_health_choice.rb)                                                          | CMS            |      ✔️       |   ✔️    | `vocabularies` (group items)         |
+| `campuses`               | [`Campus`](app/models/campus.rb)                                                                                | CMS            |      ✔️       |   ✔️    | `school_classes`, `campus_memberships`, `assets` |
+| `school_classes`         | [`SchoolClass`](app/models/school_class.rb)                                                                     | CMS            |      ✔️       |   ✔️    | `class_enrollments`, `class_homeworks` |
+| `campus_memberships`     | [`CampusMembership`](app/models/campus_membership.rb)                                                           | CMS            |      ✔️       |   ✔️    | —                                    |
+| `class_assignments`      | [`ClassAssignment`](app/models/class_assignment.rb)                                                             | CMS            |      ✔️       |   ✔️    | —                                    |
+| `class_enrollments`      | [`ClassEnrollment`](app/models/class_enrollment.rb)                                                             | CMS            |      ✔️       |   ✔️    | —                                    |
+| `class_homeworks`        | [`ClassHomework`](app/models/class_homework.rb)                                                                 | CMS            |      ✔️       |   ✔️    | —                                    |
+| `parent_students`        | [`ParentStudent`](app/models/parent_student.rb)                                                                 | CMS            |      ✔️       |   ✔️    | —                                    |
 | `client_logs`            | [`Client::Log`](app/models/client/log.rb)                                                                       | Diagnostics    |      ✔️       |   ✔️    | —                                    |
 | `notifications`          | [`Notification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/notification.rb)                   | Notifications  |      ✔️       |   ✔️    | —                                    |
 | `user_notifications`     | [`UserNotification`](file:///Users/rex/Desktop/Dev/rexone/rexone-core/app/models/user_notification.rb)          | Notifications  |      ✔️       |   ✔️    | —                                    |
@@ -1120,7 +1468,7 @@ Subscription synchronization supports Stripe, Google Play, and Apple App Store. 
 
 ---
 
-## 13. Excluded Infrastructure Tables
+## 14. Excluded Infrastructure Tables
 
 The following tables are managed automatically by backend engine gems and are excluded from core application business logic:
 

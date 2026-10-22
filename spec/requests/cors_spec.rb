@@ -23,6 +23,8 @@ RSpec.describe "CORS Policy", type: :request do
     end
 
     it "allows Demo tier with http, https, and www (rexone.rex9.me, www.rexone.rex9.me)" do
+      stub_const("AppConfig::PRODUCT_DOMAIN", "rexone.rex9.me")
+
       check_cors("https://rexone.rex9.me")
       expect(response.headers["Access-Control-Allow-Origin"]).to eq("https://rexone.rex9.me")
 
@@ -37,8 +39,7 @@ RSpec.describe "CORS Policy", type: :request do
     end
 
     it "allows product tier with http, https, and www when PRODUCT_DOMAIN is configured (e.g. rexone.com: prod, uat, dev, www)" do
-      allow(ENV).to receive(:[]).and_call_original
-      allow(ENV).to receive(:[]).with("PRODUCT_DOMAIN").and_return("rexone.com")
+      stub_const("AppConfig::PRODUCT_DOMAIN", "rexone.com")
 
       check_cors("https://rexone.com")
       expect(response.headers["Access-Control-Allow-Origin"]).to eq("https://rexone.com")
@@ -69,8 +70,7 @@ RSpec.describe "CORS Policy", type: :request do
     end
 
     it "dynamically allows custom PRODUCT_DOMAIN with any TLD (e.g. .com, .io, .ai)" do
-      allow(ENV).to receive(:[]).and_call_original
-      allow(ENV).to receive(:[]).with("PRODUCT_DOMAIN").and_return("nexuspay.io")
+      stub_const("AppConfig::PRODUCT_DOMAIN", "nexuspay.io")
 
       check_cors("https://nexuspay.io")
       expect(response.headers["Access-Control-Allow-Origin"]).to eq("https://nexuspay.io")
@@ -83,8 +83,7 @@ RSpec.describe "CORS Policy", type: :request do
     end
 
     it "dynamically allows custom CORS_ORIGINS list" do
-      allow(ENV).to receive(:[]).and_call_original
-      allow(ENV).to receive(:[]).with("CORS_ORIGINS").and_return("https://partner-portal.com, https://admin.internal.net")
+      stub_const("AppConfig::CORS_ORIGINS", [ "https://partner-portal.com", "https://admin.internal.net" ])
 
       check_cors("https://partner-portal.com")
       expect(response.headers["Access-Control-Allow-Origin"]).to eq("https://partner-portal.com")

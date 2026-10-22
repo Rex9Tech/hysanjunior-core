@@ -23,15 +23,15 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
 
     # Local development origins (ONLY allowed in development/test environments,
     # or if explicitly opted in via CORS_ALLOW_LOCALHOST=true to prevent cross-origin localhost attacks against prod/uat)
-    if Rails.env.development? || Rails.env.test? || ENV["CORS_ALLOW_LOCALHOST"] == "true"
+    if Rails.env.development? || Rails.env.test? || AppConfig::CORS_ALLOW_LOCALHOST
       origins_list << %r{\Ahttp://localhost(:\d+)?\z}
       origins_list << %r{\Ahttp://127\.0\.0\.1(:\d+)?\z}
     end
 
     # 1. Dynamic Product Domain (Supports ANY TLD: .com, .io, .ai, .app, .org, .me, etc.)
     # Set via PRODUCT_DOMAIN in environment (e.g., PRODUCT_DOMAIN=rexone.me or acme.com)
-    if ENV["PRODUCT_DOMAIN"].present?
-      p_domain = ENV["PRODUCT_DOMAIN"].strip
+    if AppConfig::PRODUCT_DOMAIN.present?
+      p_domain = AppConfig::PRODUCT_DOMAIN
       origins_list += [
         "https://#{p_domain}", "http://#{p_domain}",
         "https://www.#{p_domain}", "http://www.#{p_domain}",
@@ -43,19 +43,9 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       ]
     end
 
-    # 2. Live Demo Tier (Rex9 showcase deployment)
-    # Explicit strings for http, https, www + wildcard for all demo subdomains
-    origins_list += [
-      "https://rexone.rex9.me", "http://rexone.rex9.me",
-      "https://www.rexone.rex9.me", "http://www.rexone.rex9.me",
-      "https://rex9.me", "http://rex9.me",
-      "https://www.rex9.me", "http://www.rex9.me",
-      %r{\Ahttps?://([a-zA-Z0-9-]+\.)*rex9\.me\z}
-    ]
-
-    # 3. Explicit Client Base URL (auto-adds http://, https://, and www. forms)
-    if ENV["RAILS_CLIENT_BASE_URL"].present?
-      client_url = ENV["RAILS_CLIENT_BASE_URL"].strip
+    # 2. Explicit Client Base URL (auto-adds http://, https://, and www. forms)
+    if AppConfig::CLIENT_BASE_URL.present?
+      client_url = AppConfig::CLIENT_BASE_URL
       origins_list << client_url
       if client_url =~ %r{\Ahttps?://([^/:]+)(:\d+)?\z}
         host = $1
@@ -69,20 +59,19 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       end
     end
 
-    # 4. Comma-separated custom CORS origins
-    if ENV["CORS_ORIGINS"].present?
-      origins_list.concat(ENV["CORS_ORIGINS"].split(",").map(&:strip).reject(&:empty?))
+    # 3. Comma-separated custom CORS origins
+    if AppConfig::CORS_ORIGINS.any?
+      origins_list.concat(AppConfig::CORS_ORIGINS)
     end
 
-    # 5. Runtime dynamic resolver for live ENV changes (PRODUCT_DOMAIN and CORS_ORIGINS)
+    # 4. Runtime dynamic resolver for live ENV changes (PRODUCT_DOMAIN and CORS_ORIGINS)
     origins_list << lambda { |source, _env|
-      if ENV["PRODUCT_DOMAIN"].present?
-        p_domain = ENV["PRODUCT_DOMAIN"].strip
-        return true if source =~ %r{\Ahttps?://([a-zA-Z0-9-]+\.)*#{Regexp.escape(p_domain)}\z}
+      if AppConfig::PRODUCT_DOMAIN.present?
+        return true if source =~ %r{\Ahttps?://([a-zA-Z0-9-]+\.)*#{Regexp.escape(AppConfig::PRODUCT_DOMAIN)}\z}
       end
 
-      if ENV["CORS_ORIGINS"].present?
-        return true if ENV["CORS_ORIGINS"].split(",").map(&:strip).include?(source)
+      if AppConfig::CORS_ORIGINS.any?
+        return true if AppConfig::CORS_ORIGINS.include?(source)
       end
 
       false

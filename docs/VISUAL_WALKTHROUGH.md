@@ -49,11 +49,11 @@ Teams routinely burn $150,000–$300,000 in runway reinventing password resets, 
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### The RexOne Difference: Day-One Sovereign Reality
+### The RexOne Difference: Day-One Production Reality
 RexOne delivers this entire tri-platform foundation on **Day One**:
-- **1,690+ Automated Tests** (1,020 RSpec + 371 Vitest + 304 Flutter) guaranteeing unbreakable architectural integrity.
+- **1,785+ Automated Tests** (1,071 RSpec + 372 Vitest + 342 Flutter) guaranteeing unbreakable architectural integrity.
 - **Strict Constitutional Law (`LAW.md`)** enforcing pure parameter contracts, plain English, and zero dead code.
-- **Sovereign & Self-Hostable**: PostgreSQL 18, self-hosted Garage S3, native Solid Queue. Zero vendor hostage bills.
+- **Self-Hostable & Free**: PostgreSQL 18, self-hosted Garage S3, native Solid Queue. Zero vendor hostage bills.
 
 **Your time to launch drops from 9 months to 2–3 weeks.**
 
@@ -932,7 +932,7 @@ This gives the backend one place to inspect failures originating outside Rails i
 
 The Operations Center is where RexOne visibly demonstrates that “observable” is an architectural property, not a marketing word.
 
-Accessible on `http://localhost:3000` via Super Admin credentials (`username: superadmin`, `passcode: 111111`), Core mounts multiple protected operational surfaces:
+Accessible on `http://localhost:3000` via authorized administrative credentials, Core mounts multiple protected operational surfaces:
 
 | Path           | Surface                     | Purpose                                         |
 | -------------- | --------------------------- | ----------------------------------------------- |
@@ -941,9 +941,9 @@ Accessible on `http://localhost:3000` via Super Admin credentials (`username: su
 | `/admin/red`   | Rails Error Dashboard (RED) | Backend exception investigation and diagnostics |
 | `/admin/queue` | Solid Web UI — Queue        | Solid Queue inspection/control                  |
 | `/admin/cache` | Solid Web UI — Cache        | Solid Cache inspection                          |
-| `/admin/cable` | Solid Web UI — Cable        | Solid Cable activity                            |
-| `/api-docs`    | Rswag / Swagger UI          | Interactive OpenAPI documentation               |
-| `/up`          | Rails health endpoint       | Application health check                        |
+| `/admin/cable`    | Solid Web UI — Cable        | Solid Cable activity                            |
+| `/admin/api-docs` | Rswag / Swagger UI          | Interactive OpenAPI documentation               |
+| `/up`             | Rails health endpoint       | Application health check                        |
 
 ## 13.1 Administrate — server back office
 
@@ -1014,7 +1014,7 @@ The cable dashboard exposes message/channel activity, volume, and retention beha
   <img src="./images/walkthrough/operations/o07-swagger.png" alt="O07 — Swagger/OpenAPI API docs" width="100%">
 </p>
 
-`/api-docs` makes the HTTP contract inspectable and testable instead of requiring developers to reverse-engineer routes from client code.
+`/admin/api-docs` makes the HTTP contract inspectable and testable instead of requiring developers to reverse-engineer routes from client code.
 
 **Open-source credit:** [rswag/rswag](https://github.com/rswag/rswag)
 
@@ -1211,7 +1211,7 @@ The UI architecture is strictly decoupled from business contracts:
    ./scripts/rebrand.sh brand.config.json
    ```
 
-   This script reads the master `brand.config.json` (app name, organization, domain, database names, bundle identifiers, email sender identity, repository URLs) and safely synchronizes the brand identity across `rexone-core`, `rexone-web`, and `rexone-mobile` simultaneously. (Note: Landing modules and foundation SEO/GEO discovery assets are intentionally excluded from automation to preserve RexOne's foundation identity and leave product-specific SEO in the hands of the developer).
+   This script reads `brand.config.json` (app name, company, domain, database names, bundle identifiers, email sender identity) and safely synchronizes brand identity across `rexone-core`, `rexone-web`, and `rexone_mobile` simultaneously. See **[Ecosystem Rebranding Guide](REBRANDING.md)** for the complete guide. (Note: Landing modules and foundation SEO/GEO discovery assets are intentionally excluded from automation to preserve RexOne's foundation identity and leave product-specific SEO in the hands of the developer).
 
 2. **Web Design System (`rexone-web/src/design`)**:
    All UI elements, widgets, dialogs, typography, and theme tokens live under `src/design/`:

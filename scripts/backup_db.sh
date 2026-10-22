@@ -6,7 +6,7 @@ BACKUP_DIR="${BACKUP_DIR:-./backups/db}"
 RETENTION_DAYS="${RETENTION_DAYS:-7}"
 TIMESTAMP="$(date +'%Y%m%d_%H%M%S')"
 
-CONTAINER_NAME="${DB_CONTAINER_NAME:-dev-rexone-core-db}"
+CONTAINER_NAME="${DB_CONTAINER_NAME:-dev-hysanjunio-core-db}"
 DB_USER="${PG_USER:-postgres}"
 
 mkdir -p "${BACKUP_DIR}"
@@ -21,10 +21,10 @@ if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
 fi
 
 if [ -z "${PG_DATABASE:-}" ]; then
-  if docker exec "${CONTAINER_NAME}" psql -U "${DB_USER}" -lqt | cut -d \| -f 1 | grep -qw "rexone_core_production"; then
-    DB_NAME="rexone_core_production"
+  if docker exec "${CONTAINER_NAME}" psql -U "${DB_USER}" -lqt | cut -d \| -f 1 | grep -qw "hysanjunio_core_production"; then
+    DB_NAME="hysanjunio_core_production"
   else
-    DB_NAME="rexone_core_development"
+    DB_NAME="hysanjunio_core_development"
   fi
 else
   DB_NAME="${PG_DATABASE}"

@@ -1,6 +1,6 @@
 # RexOne Core: Technical Documentation & Subsystem Reference
 
-This directory serves as the technical documentation manual for **RexOne Core** (`rexone-core`), the sovereign Ruby on Rails 8 API engine for modern web and mobile applications.
+This directory serves as the technical documentation manual for **RexOne Core** (`rexone-core`), the production-grade Ruby on Rails 8 API engine for modern web and mobile applications.
 
 ---
 
@@ -32,26 +32,27 @@ This directory serves as the technical documentation manual for **RexOne Core** 
 
 All development tasks are automated via deterministic shell scripts located in `scripts/`:
 
-| Script                            | Purpose                                                                             | Options / Flags                               |
-| :-------------------------------- | :---------------------------------------------------------------------------------- | :-------------------------------------------- |
-| `./scripts/dev.sh`                | Starts all 5 Core containers (API, DB, Waka worker, Garage S3, Media)               | None                                          |
-| `./scripts/ci.sh`                 | Runs full automated test suite (RSpec, API contracts, RuboCop, locales)             | `contracts` (run contract validation only)    |
-| `./scripts/check_locales.sh`      | Verifies English & Burmese translation parity and message constants                 | `--unused` (audit unreferenced keys)          |
-| `./scripts/console.sh`            | Opens an interactive Rails console inside the running API container                 | None                                          |
-| `./scripts/enter_api.sh`          | Enters the running API container bash shell or executes arbitrary commands          | `[cmd...]`                                    |
-| `./scripts/docker_clean.sh`       | Safely prunes stopped containers, orphan networks, and build cache (preserves DB)   | `-y`, `--force` (bypass prompts), `--volumes` |
-| `./scripts/vps_cleanup.sh`        | Safe recurring production VPS maintenance for Coolify (prunes images older than 7d) | `IMAGE_RETENTION_HOURS=168`                   |
-| `./scripts/rebrand.sh`            | Master rebranding automation across Core, Web, and Mobile ecosystems                | `<config.json>`                               |
-| `./scripts/generate_secrets.sh`   | Generates high-entropy cryptographically secure production secret keys              | None                                          |
-| `./scripts/check_secrets.sh`      | Pre-commit secret scanner blocking live API keys and untracked `.env` files         | `--install`, `--all`                          |
-| `./scripts/install_pre_commit.sh` | Installs the master git pre-commit hook into your local `.git/hooks/`               | None                                          |
-| `./scripts/lint.sh`               | Runs RuboCop inside the API container with auto-correction support                  | `[-a]`, `[-A]`, `[path...]`                   |
+| Script                                  | Purpose                                                                                       | Options / Flags                               |
+| :-------------------------------------- | :-------------------------------------------------------------------------------------------- | :-------------------------------------------- |
+| `./scripts/dev.sh`                      | Starts all 5 Core containers (API, DB, Waka worker, Garage S3, Media)                         | None                                          |
+| `./scripts/ci.sh`                       | Runs full automated test suite (RSpec, API contracts, RuboCop, locales)                       | `contracts` (run contract validation only)    |
+| `./scripts/check_locales.sh`            | Verifies English & Burmese translation parity and message constants                           | `--unused` (audit unreferenced keys)          |
+| `./scripts/console.sh`                  | Opens an interactive Rails console inside the running API container                           | None                                          |
+| `./scripts/enter_api.sh`                | Enters the running API container bash shell or executes arbitrary commands                    | `[cmd...]`                                    |
+| `./scripts/docker_clean.sh`             | Safely prunes stopped containers, orphan networks, and build cache (preserves DB)             | `-y`, `--force` (bypass prompts), `--volumes` |
+| `./scripts/vps_cleanup.sh`              | Safe recurring production VPS maintenance for Coolify (prunes images older than 7d)           | `IMAGE_RETENTION_HOURS=168`                   |
+| [`./scripts/rebrand.sh`](REBRANDING.md) | Master rebranding automation across Core, Web, and Mobile ecosystems ([guide](REBRANDING.md)) | `<config.json>`                               |
+| `./scripts/generate_secrets.sh`         | Generates high-entropy cryptographically secure production secret keys                        | None                                          |
+| `./scripts/check_secrets.sh`            | Pre-commit secret scanner blocking live API keys and untracked `.env` files                   | `--install`, `--all`                          |
+| `./scripts/install_pre_commit.sh`       | Installs the master git pre-commit hook into your local `.git/hooks/`                         | None                                          |
+| `./scripts/lint.sh`                     | Runs RuboCop inside the API container with auto-correction support                            | `[-a]`, `[-A]`, `[path...]`                   |
+| `./scripts/seed_super_admin.sh`         | Seeds/updates Super Admin account manually (auto-reads `.env` or takes CLI args)              | `[email] [password] [username]`               |
 
 ---
 
 ## 🌐 API Route Directory
 
-For interactive OpenAPI/Swagger exploration, visit `/api-docs` when the API is running. The authoritative route families defined in [`config/routes.rb`](../config/routes.rb) include:
+For interactive OpenAPI/Swagger exploration, visit `/admin/api-docs` when the API is running. The authoritative route families defined in [`config/routes.rb`](../config/routes.rb) include:
 
 - **Authentication (`/signup`, `/signin`, `/confirmation/*`, `/password/*`)**: Stateless Devise JWT, OTP email verification, atomic JTI revocation lists, and Google OAuth challenge exchanges.
 - **IAM & Users (`/v1/users/*`, `/v1/iam/*`)**: Hierarchical role assignments, resource permission grids, user profile updates, and active session management.

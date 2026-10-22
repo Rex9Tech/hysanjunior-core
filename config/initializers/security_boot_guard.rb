@@ -23,7 +23,7 @@ module SecurityBootGuard
       description: "PostgreSQL database password"
     },
     "S3_ADMIN_TOKEN" => {
-      placeholders: [ "rexone_garage_admin_token_secret_key_12345", "changeme_garage_admin_token" ],
+      placeholders: [ "hysanjunio_garage_admin_token_secret_key_12345", "changeme_garage_admin_token" ],
       min_length: 16,
       description: "Garage S3 storage administration token"
     }
@@ -64,12 +64,12 @@ module SecurityBootGuard
 
   class << self
     def check!(env = Rails.env)
-      return if env.test? && ENV["TEST_BOOT_GUARD"] != "true"
+      return if env.test? && !AppConfig::TEST_BOOT_GUARD
 
       critical_violations = find_critical_violations
       integration_warnings = find_integration_warnings
 
-      if env.production? || ENV["ENFORCE_BOOT_GUARD"] == "true"
+      if env.production? || AppConfig::ENFORCE_BOOT_GUARD
         handle_production!(critical_violations, integration_warnings)
       else
         handle_development(integration_warnings)
@@ -146,7 +146,7 @@ module SecurityBootGuard
     end
 
     def handle_development(warnings)
-      return if warnings.empty? || ENV["QUIET_BOOT"] == "true"
+      return if warnings.empty? || AppConfig::QUIET_BOOT
 
       # Print clean diagnostics in development console
       puts ""

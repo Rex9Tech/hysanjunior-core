@@ -433,6 +433,277 @@ module Openapi
           admin_notes: { type: :string, nullable: true }
         )
       ),
+      campus_request: object(
+        required: [ :campus ],
+        campus: object(
+          required: [ :name ],
+          name: { type: :string, example: "Yangon (TimeCity) Campus" },
+          code: { type: :string, nullable: true, example: "YGN_TIMECITY" },
+          phone: { type: :string, nullable: true, example: "09444440120" },
+          location: {
+            type: :string,
+            nullable: true,
+            example: "Times City, Shop House No. 215, Kamayut, Yangon"
+          },
+          image_asset_id: {
+            type: :string,
+            format: :uuid,
+            nullable: true,
+            description: "Optional Asset id to attach as campus thumbnail. Pass null to clear."
+          },
+          status: {
+            type: :string,
+            nullable: true,
+            enum: CampusConstants::Status::ALL,
+            example: CampusConstants::Status::ACTIVE
+          }
+        )
+      ),
+
+      school_class_request: object(
+        required: [ :school_class ],
+        school_class: object(
+          required: [ :campus_id, :name, :level ],
+          campus_id: { type: :string, format: :uuid },
+          name: { type: :string, example: "A" },
+          level: { type: :integer, minimum: 1, example: 1 },
+          status: {
+            type: :string,
+            nullable: true,
+            enum: CampusConstants::Status::ALL,
+            example: CampusConstants::Status::ACTIVE
+          }
+        )
+      ),
+      campus_membership_request: object(
+        required: [ :campus_membership ],
+        campus_membership: object(
+          required: [ :campus_id, :user_id ],
+          campus_id: { type: :string, format: :uuid },
+          user_id: { type: :string, format: :uuid, description: "User must have teacher_admin role." },
+          kind: {
+            type: :string,
+            nullable: true,
+            enum: CampusConstants::MembershipKind::ALL,
+            example: CampusConstants::MembershipKind::TEACHER_ADMIN
+          }
+        )
+      ),
+      class_assignment_request: object(
+        required: [ :class_assignment ],
+        class_assignment: object(
+          required: [ :school_class_id, :user_id ],
+          school_class_id: { type: :string, format: :uuid },
+          user_id: {
+            type: :string,
+            format: :uuid,
+            description: "User must have teacher_admin role and a campus membership on the class campus."
+          }
+        )
+      ),
+      class_enrollment_request: object(
+        required: [ :class_enrollment ],
+        class_enrollment: object(
+          required: [ :school_class_id, :user_id ],
+          school_class_id: { type: :string, format: :uuid },
+          user_id: { type: :string, format: :uuid, description: "User must have student role." },
+          status: {
+            type: :string,
+            nullable: true,
+            enum: CampusConstants::EnrollmentStatus::ALL,
+            example: CampusConstants::EnrollmentStatus::ACTIVE
+          }
+        )
+      ),
+      parent_student_request: object(
+        required: [ :parent_student ],
+        parent_student: object(
+          required: [ :parent_id, :student_id ],
+          parent_id: { type: :string, format: :uuid, description: "User must have parent role." },
+          student_id: { type: :string, format: :uuid, description: "User must have student role." }
+        )
+      ),
+      class_homework_request: object(
+        required: [ :class_homework ],
+        class_homework: object(
+          required: [ :school_class_id, :lesson_id, :activity_keys ],
+          school_class_id: { type: :string, format: :uuid },
+          lesson_id: { type: :string, format: :uuid },
+          activity_keys: {
+            type: :array,
+            items: { type: :string, enum: CampusConstants::HomeworkActivity::ALL },
+            minItems: 1,
+            uniqueItems: true,
+            description: "Ordered subset of the 11 homework activities. Same lesson may be assigned multiple times."
+          },
+          play_song_at_first: { type: :boolean, nullable: true, example: false },
+          play_story_at_first: { type: :boolean, nullable: true, example: false },
+          title: { type: :string, nullable: true, example: "Week 1 practice" },
+          due_on: { type: :string, format: :date, nullable: true }
+        )
+      ),
+
+      lesson_request: object(
+        required: [ :lesson ],
+        lesson: object(
+          required: [ :title, :level, :unit ],
+          title: { type: :string, example: "Greetings" },
+          level: { type: :integer, minimum: 1, example: 1 },
+          unit: { type: :string, example: "Unit 1" },
+          status: {
+            type: :string,
+            nullable: true,
+            enum: LessonConstants::Status::ALL,
+            example: LessonConstants::Status::DRAFT,
+            description: "Publish requires song+SRT, story+SRT, ≥1 vocabulary with image, ≥1 word family with words, non-empty story_order, one build_the_sentences pair per vocabulary, ≥1 ready MCQ, and ≥1 ready sort_health_choices group."
+          },
+          story_order: {
+            type: :array,
+            description: "Ordered sentence strings for sequencing practice. Key omitted leaves unchanged; [] clears. AI create_story_order also persists here when the job completes.",
+            items: { type: :string },
+            example: [
+              "First we go to school.",
+              "And I sit down in the classroom.",
+              "And I opened the book."
+            ]
+          },
+          build_the_sentences: {
+            type: :array,
+            description: "One {vocab, sentence} pair per vocabulary. Key omitted leaves unchanged; [] clears. AI create_build_the_sentences also persists here when the job completes.",
+            items: object(
+              vocab: { type: :string, example: "cat" },
+              sentence: { type: :string, example: "I see the cat." }
+            )
+          },
+          song_asset_id: {
+            type: :string,
+            format: :uuid,
+            nullable: true,
+            description: "Pick an existing parent audio asset that already has an SRT child. Mutually exclusive with multipart audio/srt uploads."
+          },
+          story_asset_id: {
+            type: :string,
+            format: :uuid,
+            nullable: true,
+            description: "Pick an existing parent video asset that already has an SRT child. Mutually exclusive with multipart video/video_srt uploads."
+          },
+          thumbnail_asset_id: {
+            type: :string,
+            format: :uuid,
+            nullable: true,
+            description: "Pick an existing image asset as the story video thumbnail. Mutually exclusive with multipart thumbnail upload. Skips auto thumbnail generation."
+          },
+          vocabularies: {
+            type: :array,
+            description: "Full-list sync. Array order becomes position. Omitted existing ids are destroyed. Key omitted leaves vocabularies unchanged.",
+            items: object(
+              id: { type: :string, format: :uuid, nullable: true },
+              vocab: { type: :string },
+              vowel_symbol: { type: :string, nullable: true },
+              image_asset_id: {
+                type: :string,
+                format: :uuid,
+                nullable: true,
+                description: "Pick an existing parent image asset. Mutually exclusive with nested image file."
+              },
+              image: {
+                type: :string,
+                format: :binary,
+                nullable: true,
+                description: "Upload image for this vocabulary item. Mutually exclusive with image_asset_id."
+              }
+            )
+          },
+          word_families: {
+            type: :array,
+            description: "Full-list sync on create/update only (no separate save API). Array order = position.",
+            items: object(
+              id: { type: :string, format: :uuid, nullable: true },
+              pattern: { type: :string, example: "..et" },
+              words: {
+                type: :array,
+                items: { type: :string },
+                example: %w[net set pet]
+              }
+            )
+          },
+          questions: {
+            type: :array,
+            description: "Polymorphic MCQ full-list sync (host = Lesson). Array order = position. Multi-correct allowed. Option image via image_asset_id or nested image file.",
+            items: object(
+              id: { type: :string, format: :uuid, nullable: true },
+              title: { type: :string, example: "Which animal is in the story?" },
+              kind: {
+                type: :string,
+                enum: QuestionConstants::Kind::ALL,
+                example: QuestionConstants::Kind::MULTIPLE_CHOICE
+              },
+              options: {
+                type: :array,
+                items: object(
+                  id: { type: :string, format: :uuid, nullable: true },
+                  text: { type: :string, example: "Cat" },
+                  correct: { type: :boolean, example: true },
+                  image_asset_id: {
+                    type: :string,
+                    format: :uuid,
+                    nullable: true,
+                    description: "Pick an existing parent image asset. Mutually exclusive with nested image file."
+                  },
+                  image: {
+                    type: :string,
+                    format: :binary,
+                    nullable: true,
+                    description: "Upload image for this option. Mutually exclusive with image_asset_id."
+                  }
+                )
+              }
+            )
+          },
+          sort_health_choices: {
+            type: :array,
+            description: "Healthy-choice sort groups. Nested items create Vocabulary rows with sort_health_choice_id (separate from lesson.vocabularies list). Array order = position.",
+            items: object(
+              id: { type: :string, format: :uuid, nullable: true },
+              label: { type: :string, example: "Fruits" },
+              items: {
+                type: :array,
+                items: object(
+                  id: { type: :string, format: :uuid, nullable: true },
+                  vocab: { type: :string, example: "apple" },
+                  image_asset_id: {
+                    type: :string,
+                    format: :uuid,
+                    nullable: true,
+                    description: "Pick an existing parent image asset. Mutually exclusive with nested image file."
+                  },
+                  image: {
+                    type: :string,
+                    format: :binary,
+                    nullable: true,
+                    description: "Upload image for this item. Mutually exclusive with image_asset_id."
+                  }
+                )
+              }
+            )
+          }
+        )
+      ),
+      lesson_multipart_request: object(
+        required: [ :lesson ],
+        lesson: object(
+          required: [ :title, :level, :unit ],
+          title: { type: :string },
+          level: { type: :integer, minimum: 1 },
+          unit: { type: :string },
+          status: { type: :string, nullable: true, enum: LessonConstants::Status::ALL }
+        ),
+        audio: { type: :string, format: :binary, description: "New lesson song audio file. Requires srt in the same request." },
+        srt: { type: :string, format: :binary, description: "SRT subtitle for the uploaded audio. Requires audio in the same request." },
+        video: { type: :string, format: :binary, description: "New lesson story video file. Requires video_srt in the same request." },
+        video_srt: { type: :string, format: :binary, description: "SRT subtitle for the uploaded story video. Requires video in the same request." },
+        thumbnail: { type: :string, format: :binary, description: "Optional custom story thumbnail image. Mutually exclusive with thumbnail_asset_id; skips auto thumbnail generation." }
+      ),
       asset_request: object(
         required: [ :asset ],
         asset: object(
@@ -2068,6 +2339,260 @@ module Openapi
         patch: operation(tags: "Admin / Feedbacks", summary: "Update feedback status and admin notes",
                          parameters: [ path_parameter(:id) ], body: ref(:admin_feedback_update_request), errors: [ 401, 403, 404, 422 ]),
         delete: operation(tags: "Admin / Feedbacks", summary: "Delete or discard feedback",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+
+      lesson_filters = [
+        query_parameter(:status, enum: LessonConstants::Status::ALL),
+        query_parameter(:level, type: :integer),
+        query_parameter(:unit),
+        query_parameter(:search),
+        query_parameter(:discarded, type: :boolean),
+        query_parameter(:page, type: :integer),
+        query_parameter(:limit, type: :integer),
+        query_parameter(:sort_by, type: :string),
+        query_parameter(:sort_order, enum: SortConstants::Order::ALL)
+      ]
+      paths["/v1/admin/lessons"] = {
+        get: operation(tags: "Admin / Lessons", summary: "List and filter CMS lessons for admins",
+                       parameters: lesson_filters, errors: [ 401, 403 ]),
+        post: operation(
+          tags: "Admin / Lessons",
+          summary: "Create a CMS lesson",
+          description: <<~DESCRIPTION.squish,
+            One request may attach song/story, sync nested vocabularies[], word_families[], questions[], and sort_health_choices[], and set story_order[] / build_the_sentences[].
+            Publishing requires song+SRT, story+SRT, ≥1 vocabulary with image, ≥1 word family with words, non-empty story_order,
+            one build_the_sentences pair per vocabulary, ≥1 ready MCQ, and ≥1 ready sort_health_choices group.
+            AI generate endpoints create_word_families, create_story_order, and create_build_the_sentences
+            persist into the matching lesson fields when the async job completes (socket notifies with saved payload).
+          DESCRIPTION
+          success: 201,
+          body: ref(:lesson_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/lessons/{id}"] = {
+        get: operation(tags: "Admin / Lessons", summary: "Get lesson details including song, story, vocabularies, word families, story_order, build_the_sentences, questions, sort_health_choices",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        put: operation(
+          tags: "Admin / Lessons",
+          summary: "Update a CMS lesson",
+          description: "Same nested song/story/vocabulary/word_family/story_order/build_the_sentences/questions/sort_health_choices rules as create.",
+          parameters: [ path_parameter(:id) ], body: ref(:lesson_request),
+          errors: [ 401, 403, 404, 422 ]
+        ),
+        patch: operation(
+          tags: "Admin / Lessons",
+          summary: "Update a CMS lesson",
+          description: "Same nested song/story/vocabulary/word_family/story_order/build_the_sentences/questions/sort_health_choices rules as create.",
+          parameters: [ path_parameter(:id) ], body: ref(:lesson_request),
+          errors: [ 401, 403, 404, 422 ]
+        ),
+        delete: operation(tags: "Admin / Lessons", summary: "Discard a CMS lesson",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/lessons/{id}/undiscard"] = {
+        post: operation(tags: "Admin / Lessons", summary: "Restore a discarded CMS lesson",
+                        parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/lessons/{id}/create_word_families"] = {
+        post: operation(
+          tags: "Admin / Lessons",
+          summary: "Queue AI word-family generation from story SRT",
+          description: <<~DESCRIPTION.squish,
+            Requires a ready story video with SRT. Enqueues Ai::Run (feature word_family) on the ai queue.
+            Returns 202 with operation_id. On success the job overwrites lesson word_families and emits
+            lesson_word_families_generated (saved rows with id) or lesson_word_families_failed over socket.
+          DESCRIPTION
+          success: 202,
+          parameters: [ path_parameter(:id) ],
+          errors: [ 401, 403, 404, 422 ]
+        )
+      }
+      paths["/v1/admin/lessons/{id}/create_story_order"] = {
+        post: operation(
+          tags: "Admin / Lessons",
+          summary: "Queue AI story-order generation from story SRT",
+          description: <<~DESCRIPTION.squish,
+            Requires a ready story video with SRT. Enqueues Ai::Run (feature story_order) on the ai queue.
+            Returns 202 with operation_id. On success the job overwrites lesson story_order and emits
+            lesson_story_order_generated or lesson_story_order_failed over socket.
+          DESCRIPTION
+          success: 202,
+          parameters: [ path_parameter(:id) ],
+          errors: [ 401, 403, 404, 422 ]
+        )
+      }
+      paths["/v1/admin/lessons/{id}/create_build_the_sentences"] = {
+        post: operation(
+          tags: "Admin / Lessons",
+          summary: "Queue AI build-the-sentences generation from story SRT and vocabularies",
+          description: <<~DESCRIPTION.squish,
+            Requires a ready story video with SRT and at least one vocabulary. Enqueues Ai::Run (feature build_the_sentences)
+            on the ai queue. Returns 202 with operation_id. On success the job overwrites lesson build_the_sentences and emits
+            lesson_build_the_sentences_generated or lesson_build_the_sentences_failed over socket.
+          DESCRIPTION
+          success: 202,
+          parameters: [ path_parameter(:id) ],
+          errors: [ 401, 403, 404, 422 ]
+        )
+      }
+
+      paths["/v1/admin/campuses"] = {
+        get: operation(tags: "Admin / Campuses", summary: "List and filter campuses",
+                       errors: [ 401, 403 ]),
+        post: operation(tags: "Admin / Campuses", summary: "Create a campus", success: 201,
+                        body: ref(:campus_request), errors: [ 401, 403, 422 ])
+      }
+      paths["/v1/admin/campuses/{id}"] = {
+        get: operation(tags: "Admin / Campuses", summary: "Get campus details",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        put: operation(tags: "Admin / Campuses", summary: "Update a campus",
+                       parameters: [ path_parameter(:id) ], body: ref(:campus_request),
+                       errors: [ 401, 403, 404, 422 ]),
+        patch: operation(tags: "Admin / Campuses", summary: "Update a campus",
+                         parameters: [ path_parameter(:id) ], body: ref(:campus_request),
+                         errors: [ 401, 403, 404, 422 ]),
+        delete: operation(tags: "Admin / Campuses", summary: "Discard a campus",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/campuses/{id}/undiscard"] = {
+        post: operation(tags: "Admin / Campuses", summary: "Restore a discarded campus",
+                        parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/campuses/{id}/students"] = {
+        get: operation(
+          tags: "Admin / Campuses",
+          summary: "List students enrolled under a campus",
+          description: "Derived via school_classes → active class_enrollments. Filter by level and school_class_id.",
+          parameters: [ path_parameter(:id) ],
+          errors: [ 401, 403, 404 ]
+        )
+      }
+      paths["/v1/admin/school_classes"] = {
+        get: operation(tags: "Admin / School Classes", summary: "List school classes (filter campus_id, level)",
+                       errors: [ 401, 403 ]),
+        post: operation(tags: "Admin / School Classes", summary: "Create a school class", success: 201,
+                        body: ref(:school_class_request), errors: [ 401, 403, 422 ])
+      }
+      paths["/v1/admin/school_classes/{id}"] = {
+        get: operation(tags: "Admin / School Classes", summary: "Get school class details",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        put: operation(tags: "Admin / School Classes", summary: "Update a school class",
+                       parameters: [ path_parameter(:id) ], body: ref(:school_class_request),
+                       errors: [ 401, 403, 404, 422 ]),
+        patch: operation(tags: "Admin / School Classes", summary: "Update a school class",
+                         parameters: [ path_parameter(:id) ], body: ref(:school_class_request),
+                         errors: [ 401, 403, 404, 422 ]),
+        delete: operation(tags: "Admin / School Classes", summary: "Discard a school class",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/school_classes/{id}/undiscard"] = {
+        post: operation(tags: "Admin / School Classes", summary: "Restore a discarded school class",
+                        parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/campus_memberships"] = {
+        get: operation(tags: "Admin / Campus Memberships", summary: "List campus teacher memberships",
+                       errors: [ 401, 403 ]),
+        post: operation(
+          tags: "Admin / Campus Memberships",
+          summary: "Attach a teacher_admin user to a campus",
+          success: 201,
+          body: ref(:campus_membership_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/campus_memberships/{id}"] = {
+        get: operation(tags: "Admin / Campus Memberships", summary: "Get a campus membership",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        delete: operation(tags: "Admin / Campus Memberships", summary: "Remove a campus membership",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/class_assignments"] = {
+        get: operation(
+          tags: "Admin / Class Assignments",
+          summary: "List teacher-to-class assignments",
+          description: "Filter by school_class_id, campus_id, or user_id.",
+          errors: [ 401, 403 ]
+        ),
+        post: operation(
+          tags: "Admin / Class Assignments",
+          summary: "Assign a campus teacher to a school class",
+          description: "Teacher must already be a campus_membership on the class campus.",
+          success: 201,
+          body: ref(:class_assignment_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/class_assignments/{id}"] = {
+        delete: operation(tags: "Admin / Class Assignments", summary: "Remove a class assignment",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/class_enrollments"] = {
+        get: operation(tags: "Admin / Class Enrollments", summary: "List class enrollments",
+                       errors: [ 401, 403 ]),
+        post: operation(
+          tags: "Admin / Class Enrollments",
+          summary: "Enroll a student in a school class",
+          success: 201,
+          body: ref(:class_enrollment_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/class_enrollments/{id}"] = {
+        get: operation(tags: "Admin / Class Enrollments", summary: "Get enrollment details",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        put: operation(tags: "Admin / Class Enrollments", summary: "Update enrollment",
+                       parameters: [ path_parameter(:id) ], body: ref(:class_enrollment_request),
+                       errors: [ 401, 403, 404, 422 ]),
+        patch: operation(tags: "Admin / Class Enrollments", summary: "Update enrollment",
+                         parameters: [ path_parameter(:id) ], body: ref(:class_enrollment_request),
+                         errors: [ 401, 403, 404, 422 ]),
+        delete: operation(tags: "Admin / Class Enrollments", summary: "Remove enrollment",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/class_homeworks"] = {
+        get: operation(
+          tags: "Admin / Class Homeworks",
+          summary: "List class homeworks",
+          description: "Filter by school_class_id, lesson_id, or campus_id. Same lesson may appear multiple times per class.",
+          errors: [ 401, 403 ]
+        ),
+        post: operation(
+          tags: "Admin / Class Homeworks",
+          summary: "Assign homework to a school class",
+          description: "Pick a lesson, ordered activity_keys from the 11 catalog activities, optional play song/story at first.",
+          success: 201,
+          body: ref(:class_homework_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/class_homeworks/{id}"] = {
+        get: operation(tags: "Admin / Class Homeworks", summary: "Get class homework details",
+                       parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ]),
+        put: operation(tags: "Admin / Class Homeworks", summary: "Update class homework",
+                       parameters: [ path_parameter(:id) ], body: ref(:class_homework_request),
+                       errors: [ 401, 403, 404, 422 ]),
+        patch: operation(tags: "Admin / Class Homeworks", summary: "Update class homework",
+                         parameters: [ path_parameter(:id) ], body: ref(:class_homework_request),
+                         errors: [ 401, 403, 404, 422 ]),
+        delete: operation(tags: "Admin / Class Homeworks", summary: "Remove class homework",
+                          parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
+      }
+      paths["/v1/admin/parent_students"] = {
+        get: operation(tags: "Admin / Parent Students", summary: "List parent-student links",
+                       errors: [ 401, 403 ]),
+        post: operation(
+          tags: "Admin / Parent Students",
+          summary: "Link a parent to a student",
+          description: "Parents are not campus members. Campus association is derived from the student's class enrollment.",
+          success: 201,
+          body: ref(:parent_student_request),
+          errors: [ 401, 403, 422 ]
+        )
+      }
+      paths["/v1/admin/parent_students/{id}"] = {
+        delete: operation(tags: "Admin / Parent Students", summary: "Remove a parent-student link",
                           parameters: [ path_parameter(:id) ], errors: [ 401, 403, 404 ])
       }
 
