@@ -84,7 +84,7 @@ RSpec.describe EmailService::TemplateRenderer do
 
     it "renders security and welcome templates" do
       welcome_html = described_class.render("welcome", user_name: "Rex")
-      expect(welcome_html).to include("Welcome to RexOne")
+      expect(welcome_html).to include("Welcome to Hysan Junior")
       expect(welcome_html).to include("Rex")
 
       alert_html = described_class.render("sign_in_alert", user_name: "Rex", time: "14:30 UTC")
@@ -122,7 +122,7 @@ RSpec.describe EmailService::TemplateRenderer do
       expect(html).to include("50% OFF")
       expect(html).to include("Oct 1, 2026")
       expect(html).to include("Offer limited to the first 500 redemptions.")
-      expect(html).to include("&copy; 2026 RexOne Ecosystem")
+      expect(html).to include("&copy; 2026 Hysan. All rights reserved.")
     end
 
     it "escapes untrusted user input to prevent HTML injection" do
@@ -172,7 +172,7 @@ RSpec.describe EmailService::TemplateRenderer do
 
   describe ".subject" do
     it "resolves standard template subjects and custom overrides" do
-      expect(described_class.subject("email_confirmation")).to eq("Confirm your RexOne email")
+      expect(described_class.subject("email_confirmation")).to eq("Confirm your Hysan Junior email")
       expect(described_class.subject("email_confirmation", subject: "Custom Subject: {{code}}", code: "123")).to eq("Custom Subject: 123")
       expect(described_class.subject("custom_campaign_notice")).to eq("Custom Campaign Notice")
     end

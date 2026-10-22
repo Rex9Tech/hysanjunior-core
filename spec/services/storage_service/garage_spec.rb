@@ -24,13 +24,13 @@ RSpec.describe StorageService::Garage do
       allow(Aws::S3::Presigner).to receive(:new).with(client: s3_client).and_return(presigner)
       allow(presigner).to receive(:presigned_url).with(
         :get_object,
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "uploads/test.png",
         expires_in: 7.days.to_i,
         response_content_type: "image/png"
-      ).and_return("http://localhost:3100/rexone/uploads/test.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=xyz")
+      ).and_return("http://localhost:3100/hysanjunio/uploads/test.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=xyz")
 
-      expect(adapter.url("uploads/test.png")).to eq("http://localhost:3100/rexone/uploads/test.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=xyz")
+      expect(adapter.url("uploads/test.png")).to eq("http://localhost:3100/hysanjunio/uploads/test.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=xyz")
     end
 
 
@@ -39,11 +39,11 @@ RSpec.describe StorageService::Garage do
       allow(Aws::S3::Presigner).to receive(:new).with(client: s3_client).and_return(presigner)
       expect(presigner).to receive(:presigned_url).with(
         :get_object,
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "uploads/audio.m4a",
         expires_in: 7.days.to_i,
         response_content_type: "audio/mp4a-latm"
-      ).and_return("http://localhost:3100/rexone/uploads/audio.m4a?sig=123")
+      ).and_return("http://localhost:3100/hysanjunio/uploads/audio.m4a?sig=123")
 
       expect(adapter.url("uploads/audio.m4a")).to include("audio.m4a")
     end
@@ -61,17 +61,17 @@ RSpec.describe StorageService::Garage do
       allow(Aws::S3::Presigner).to receive(:new).with(client: s3_client).and_return(presigner)
       expect(presigner).to receive(:presigned_url).with(
         :get_object,
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "uploads/video.mp4",
         expires_in: 3600,
         response_content_type: "video/mp4",
         response_content_disposition: "inline"
-      ).and_return("http://localhost:3100/rexone/uploads/video.mp4?X-Amz-Signature=xyz")
+      ).and_return("http://localhost:3100/hysanjunio/uploads/video.mp4?X-Amz-Signature=xyz")
 
       travel_to Time.zone.parse("2026-09-14 10:00:00 UTC") do
         expect(adapter.playback_url(asset, expires_in: 3600)).to eq(
           type: "progressive",
-          url: "http://localhost:3100/rexone/uploads/video.mp4?X-Amz-Signature=xyz",
+          url: "http://localhost:3100/hysanjunio/uploads/video.mp4?X-Amz-Signature=xyz",
           expires_at: Time.zone.parse("2026-09-14 11:00:00 UTC")
         )
       end
@@ -81,7 +81,7 @@ RSpec.describe StorageService::Garage do
       public_client = double("Public S3 Client")
       allow(Aws::S3::Client).to receive(:new).and_return(s3_client, public_client)
       adapter = described_class.new
-      presigner = double("Aws::S3::Presigner", presigned_url: "http://localhost:3100/rexone/uploads/audio.mp3?sig=123")
+      presigner = double("Aws::S3::Presigner", presigned_url: "http://localhost:3100/hysanjunio/uploads/audio.mp3?sig=123")
       allow(Aws::S3::Presigner).to receive(:new).with(client: public_client).and_return(presigner)
       asset = build(:asset, storage_key: "uploads/audio.mp3", extension: "mp3", format: "audio")
 
@@ -91,14 +91,14 @@ RSpec.describe StorageService::Garage do
 
   describe "#delete" do
     it "deletes object from bucket and returns true" do
-      allow(s3_client).to receive(:delete_object).with(bucket: "rexone", key: "uploads/test.png")
+      allow(s3_client).to receive(:delete_object).with(bucket: "hysanjunio", key: "uploads/test.png")
       expect(adapter.delete("uploads/test.png")).to be(true)
     end
   end
 
   describe "#exists?" do
     it "returns true when head_object succeeds" do
-      allow(s3_client).to receive(:head_object).with(bucket: "rexone", key: "uploads/test.png")
+      allow(s3_client).to receive(:head_object).with(bucket: "hysanjunio", key: "uploads/test.png")
       expect(adapter.exists?("uploads/test.png")).to be(true)
     end
   end
@@ -106,7 +106,7 @@ RSpec.describe StorageService::Garage do
   describe "#download" do
     it "streams to destination_path when provided" do
       expect(s3_client).to receive(:get_object).with(
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "uploads/test.png",
         response_target: "/tmp/dest.png"
       )
@@ -117,7 +117,7 @@ RSpec.describe StorageService::Garage do
       body_mock = double("Body", read: "file-content")
       response_mock = double("Response", body: body_mock)
       expect(s3_client).to receive(:get_object).with(
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "uploads/test.png"
       ).and_return(response_mock)
       expect(adapter.download("uploads/test.png")).to eq("file-content")
@@ -129,14 +129,14 @@ RSpec.describe StorageService::Garage do
 
     it "uploads file and returns storage metadata" do
       expect(s3_client).to receive(:put_object).with(
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "user/1/photo.jpg",
         body: file_double,
         content_type: "image/jpeg"
       )
       presigner = double("Aws::S3::Presigner")
       allow(Aws::S3::Presigner).to receive(:new).with(client: adapter.public_client).and_return(presigner)
-      allow(presigner).to receive(:presigned_url).and_return("http://localhost:3100/rexone/user/1/photo.jpg")
+      allow(presigner).to receive(:presigned_url).and_return("http://localhost:3100/hysanjunio/user/1/photo.jpg")
 
       result = adapter.upload(file_double, storage_key: "user/1/photo.jpg")
       expect(result[:storage_key]).to eq("user/1/photo.jpg")
@@ -189,14 +189,14 @@ RSpec.describe StorageService::Garage do
 
     it "automatically prefixes uploaded storage_key with the folder" do
       expect(s3_client).to receive(:put_object).with(
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "prod/user/1/avatar.png",
         body: file_double,
         content_type: "image/png"
       )
       presigner = double("Aws::S3::Presigner")
       allow(Aws::S3::Presigner).to receive(:new).with(client: adapter.public_client).and_return(presigner)
-      allow(presigner).to receive(:presigned_url).and_return("http://localhost:3100/rexone/prod/user/1/avatar.png")
+      allow(presigner).to receive(:presigned_url).and_return("http://localhost:3100/hysanjunio/prod/user/1/avatar.png")
 
       result = adapter.upload(file_double, storage_key: "user/1/avatar.png")
       expect(result[:storage_key]).to eq("prod/user/1/avatar.png")
@@ -204,27 +204,27 @@ RSpec.describe StorageService::Garage do
 
     it "does not double-prefix if storage_key already begins with prefix" do
       expect(s3_client).to receive(:put_object).with(
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "prod/user/1/avatar.png",
         body: file_double,
         content_type: "image/png"
       )
       presigner = double("Aws::S3::Presigner")
       allow(Aws::S3::Presigner).to receive(:new).with(client: adapter.public_client).and_return(presigner)
-      allow(presigner).to receive(:presigned_url).and_return("http://localhost:3100/rexone/prod/user/1/avatar.png")
+      allow(presigner).to receive(:presigned_url).and_return("http://localhost:3100/hysanjunio/prod/user/1/avatar.png")
 
       result = adapter.upload(file_double, storage_key: "prod/user/1/avatar.png")
       expect(result[:storage_key]).to eq("prod/user/1/avatar.png")
     end
 
     it "preserves an explicit key from another environment partition" do
-      expect(s3_client).to receive(:head_object).with(bucket: "rexone", key: "uat/user/1/avatar.png")
+      expect(s3_client).to receive(:head_object).with(bucket: "hysanjunio", key: "uat/user/1/avatar.png")
 
       expect(adapter.exists?("uat/user/1/avatar.png")).to be(true)
     end
 
     it "prefixes delete calls" do
-      expect(s3_client).to receive(:delete_object).with(bucket: "rexone", key: "prod/user/1/avatar.png")
+      expect(s3_client).to receive(:delete_object).with(bucket: "hysanjunio", key: "prod/user/1/avatar.png")
       expect(adapter.delete("user/1/avatar.png")).to be(true)
     end
 
@@ -233,11 +233,11 @@ RSpec.describe StorageService::Garage do
         double("Object", key: "prod/user/1/avatar.png", size: 512, last_modified: Time.now)
       ])
       expect(s3_client).to receive(:list_objects_v2).with(
-        bucket: "rexone",
+        bucket: "hysanjunio",
         prefix: "prod/user",
         max_keys: 100
       ).and_return(list_output)
-      allow(adapter).to receive(:url).with("prod/user/1/avatar.png").and_return("http://localhost:3100/rexone/prod/user/1/avatar.png")
+      allow(adapter).to receive(:url).with("prod/user/1/avatar.png").and_return("http://localhost:3100/hysanjunio/prod/user/1/avatar.png")
 
       results = adapter.list("user")
       expect(results.first[:storage_key]).to eq("prod/user/1/avatar.png")
@@ -253,14 +253,14 @@ RSpec.describe StorageService::Garage do
 
     it "uploads files to the dev/ folder" do
       expect(s3_client).to receive(:put_object).with(
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "dev/uploads/banner.jpg",
         body: file_double,
         content_type: "image/jpeg"
       )
       presigner = double("Aws::S3::Presigner")
       allow(Aws::S3::Presigner).to receive(:new).with(client: adapter.public_client).and_return(presigner)
-      allow(presigner).to receive(:presigned_url).and_return("http://localhost:3100/rexone/dev/uploads/banner.jpg")
+      allow(presigner).to receive(:presigned_url).and_return("http://localhost:3100/hysanjunio/dev/uploads/banner.jpg")
 
       result = adapter.upload(file_double, storage_key: "uploads/banner.jpg")
       expect(result[:storage_key]).to eq("dev/uploads/banner.jpg")
@@ -271,13 +271,13 @@ RSpec.describe StorageService::Garage do
       allow(Aws::S3::Presigner).to receive(:new).with(client: adapter.public_client).and_return(presigner)
       expect(presigner).to receive(:presigned_url).with(
         :get_object,
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "dev/photos/test.jpg",
         expires_in: 7.days.to_i,
         response_content_type: "image/jpeg"
-      ).and_return("http://localhost:3100/rexone/dev/photos/test.jpg?sig=123")
+      ).and_return("http://localhost:3100/hysanjunio/dev/photos/test.jpg?sig=123")
 
-      expect(adapter.url("photos/test.jpg")).to eq("http://localhost:3100/rexone/dev/photos/test.jpg?sig=123")
+      expect(adapter.url("photos/test.jpg")).to eq("http://localhost:3100/hysanjunio/dev/photos/test.jpg?sig=123")
     end
 
     it "does not double-prefix when URL already contains dev/" do
@@ -285,23 +285,23 @@ RSpec.describe StorageService::Garage do
       allow(Aws::S3::Presigner).to receive(:new).with(client: adapter.public_client).and_return(presigner)
       expect(presigner).to receive(:presigned_url).with(
         :get_object,
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "dev/photos/test.jpg",
         expires_in: 7.days.to_i,
         response_content_type: "image/jpeg"
-      ).and_return("http://localhost:3100/rexone/dev/photos/test.jpg?sig=123")
+      ).and_return("http://localhost:3100/hysanjunio/dev/photos/test.jpg?sig=123")
 
-      expect(adapter.url("dev/photos/test.jpg")).to eq("http://localhost:3100/rexone/dev/photos/test.jpg?sig=123")
+      expect(adapter.url("dev/photos/test.jpg")).to eq("http://localhost:3100/hysanjunio/dev/photos/test.jpg?sig=123")
     end
 
     it "checks existence with dev/ prefix" do
-      expect(s3_client).to receive(:head_object).with(bucket: "rexone", key: "dev/uploads/test.png")
+      expect(s3_client).to receive(:head_object).with(bucket: "hysanjunio", key: "dev/uploads/test.png")
       expect(adapter.exists?("uploads/test.png")).to be(true)
     end
 
     it "downloads objects with dev/ prefix" do
       expect(s3_client).to receive(:get_object).with(
-        bucket: "rexone",
+        bucket: "hysanjunio",
         key: "dev/uploads/test.png",
         response_target: "/tmp/dest.png"
       )
@@ -310,13 +310,13 @@ RSpec.describe StorageService::Garage do
 
     it "copies objects with dev/ prefix on both source and destination" do
       expect(s3_client).to receive(:copy_object).with(
-        bucket: "rexone",
-        copy_source: "rexone/dev/src.png",
+        bucket: "hysanjunio",
+        copy_source: "hysanjunio/dev/src.png",
         key: "dev/dst.png"
       )
       head_double = double("HeadObject", content_length: 2048)
-      expect(s3_client).to receive(:head_object).with(bucket: "rexone", key: "dev/dst.png").and_return(head_double)
-      allow(adapter).to receive(:url).with("dev/dst.png").and_return("http://localhost:3100/rexone/dev/dst.png")
+      expect(s3_client).to receive(:head_object).with(bucket: "hysanjunio", key: "dev/dst.png").and_return(head_double)
+      allow(adapter).to receive(:url).with("dev/dst.png").and_return("http://localhost:3100/hysanjunio/dev/dst.png")
 
       result = adapter.copy("src.png", "dst.png")
       expect(result[:storage_key]).to eq("dev/dst.png")
