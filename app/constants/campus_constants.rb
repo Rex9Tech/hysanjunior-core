@@ -65,4 +65,3 @@ module CampusConstants
     }.freeze
   end
 end
-

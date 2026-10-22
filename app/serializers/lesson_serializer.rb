@@ -44,4 +44,3 @@ class LessonSerializer < ApplicationSerializer
     SortHealthChoiceSerializer.collection(lesson.sort_health_choices)
   end
 end
-

@@ -46,4 +46,3 @@ module MessageService
     HOMEWORK_NOT_FOUND = "campus.homework_not_found"
   end
 end
-

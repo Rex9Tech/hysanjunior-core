@@ -22,4 +22,3 @@ class SchoolClassSerializer < ApplicationSerializer
     school_class.class_assignments.size
   end
 end
-

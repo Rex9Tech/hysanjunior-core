@@ -64,4 +64,3 @@ module MessageService
     SORT_HEALTH_CHOICE_NOT_FOUND = "lesson.sort_health_choice_not_found"
   end
 end
-
